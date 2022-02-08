@@ -1,31 +1,31 @@
+# This workflow executes several linters on changed files based on languages used in your code base whenever
+# you push a code or open a pull request.
+#
+# You can adjust the behavior by modifying this file.
+# For more information, see:
+# https://github.com/github/super-linter
 name: Lint Code Base
 
-## push를 했을때 실행을 해주는 것. 
-on: push
-
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 jobs:
-  # Set the job key. The key is displayed as the job name
-  # when a job name is not provided
-  super-lint:
-    # Name the Job
-    name: Lint Code Base
-    # Set the type of machine to run on
+  run-lint:
     runs-on: ubuntu-latest
-
-    env:
-      OS: ${{ matrix.os }}
-      PYTHON: '3.7'
-
     steps:
-      # Checks out a copy of your repository on the ubuntu-latest machine
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          # Full git history is needed to get a proper list of changed files within `super-linter`
+          fetch-depth: 0
 
-      # Runs the Super-Linter action
       - name: Lint Code Base
-        uses: github/super-linter@v3 # github에 있는 git action을 사용. 
+        uses: github/super-linter@v4
         env:
+          VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN1 }}
           VALIDATE_PYTHON_BLACK: true
           VALIDATE_PYTHON_FLAKE8: true
