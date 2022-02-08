@@ -1,0 +1,31 @@
+name: Lint Code Base
+
+## push를 했을때 실행을 해주는 것. 
+on: push
+
+jobs:
+  # Set the job key. The key is displayed as the job name
+  # when a job name is not provided
+  super-lint:
+    # Name the Job
+    name: Lint Code Base
+    # Set the type of machine to run on
+    runs-on: ubuntu-latest
+
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: '3.7'
+
+    steps:
+      # Checks out a copy of your repository on the ubuntu-latest machine
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Runs the Super-Linter action
+      - name: Lint Code Base
+        uses: github/super-linter@v3 # github에 있는 git action을 사용. 
+        env:
+          DEFAULT_BRANCH: master
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          VALIDATE_PYTHON_BLACK: true
+          VALIDATE_PYTHON_FLAKE8: true
