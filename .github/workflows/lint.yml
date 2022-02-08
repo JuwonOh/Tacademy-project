@@ -25,7 +25,7 @@ jobs:
       - name: Lint Code Base
         uses: github/super-linter@v3 # github에 있는 git action을 사용. 
         env:
-          DEFAULT_BRANCH: master
+          DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           VALIDATE_PYTHON_BLACK: true
           VALIDATE_PYTHON_FLAKE8: true
