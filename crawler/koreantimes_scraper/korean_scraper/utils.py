@@ -14,7 +14,7 @@ def now():
     Current time : str
         eg: 2018-11-22 13:35:23
     """
-    return strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    return strftime("%Y%m%d", gmtime())
 
 
 def get_soup(url, headers=None):
@@ -35,8 +35,8 @@ def get_soup(url, headers=None):
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36"
         }
-    r = requests.get(url, headers=headers)
-    html = r.text
+    r_result = requests.get(url, headers=headers)
+    html = r_result.text
     page = BeautifulSoup(html, "lxml")
     return page
 
@@ -46,6 +46,12 @@ lineseparator_pattern = re.compile("\n+")
 
 
 def normalize_text(text):
+    """
+    Arguments
+    ---------
+    url : str
+    Returns clean str
+    """
     doublespace_pattern = re.compile("\s+")
     lineseparator_pattern = re.compile("\n+")
     text = text.replace("\t", " ")

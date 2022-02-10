@@ -1,0 +1,13 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort # isort 사용
+        language_version: python3
+  - repo: https://github.com/psf/black
+    rev: 21.12b0
+    hooks:
+      - id: black # black사용
+        language_version: python3

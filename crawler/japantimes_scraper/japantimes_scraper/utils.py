@@ -1,7 +1,7 @@
 import json
 import re
 from datetime import datetime
-from time import gmtime, strftime
+from time import gmtime, sleep, strftime
 
 import requests
 from bs4 import BeautifulSoup

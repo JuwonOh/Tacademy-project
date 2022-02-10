@@ -1,14 +1,16 @@
 import json
-import time
-import requests
 import re
-from dateutil.parser import parse
-from .utils import get_soup
-from .parser import parse_article
-from dateutil.relativedelta import relativedelta
+import time
 from datetime import datetime
 
-## caution: global times limit page 100, you should use date 
+from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
+
+from .parser import parse_article
+from .utils import get_soup
+
+## caution: global times limit page 100, you should use date
+
 
 def yield_latest_article(begin_date, max_num=10, sleep=0.1):
     """
@@ -16,8 +18,6 @@ def yield_latest_article(begin_date, max_num=10, sleep=0.1):
     ---------
     begin_date : str
         eg. 2018-07-01
-    end_date :str
-        eg. 2019-03-31
     max_num : int
         Maximum number of news to be scraped
     sleep : float
@@ -43,7 +43,9 @@ def yield_latest_article(begin_date, max_num=10, sleep=0.1):
         # get urls
         page = str(page)
         ymonth = d_begin.strftime("%Y%m")
-        url = "https://www.globaltimes.cn/page/{}/{}.shtml".format(ymonth, page)
+        url = "https://www.globaltimes.cn/page/{}/{}.shtml".format(
+            ymonth, page
+        )
 
         print(url)
         try:
@@ -53,10 +55,15 @@ def yield_latest_article(begin_date, max_num=10, sleep=0.1):
 
         except:
             try:
-                ymonth = (datetime.strptime(begin_date, "%Y-%m-%d") + relativedelta(months = 1)).strftime("%Y%m")
-                url = "https://www.globaltimes.cn/page/{}/{}.shtml".format(ymonth, page)
+                ymonth = (
+                    datetime.strptime(begin_date, "%Y-%m-%d")
+                    + relativedelta(months=1)
+                ).strftime("%Y%m")
+                url = "https://www.globaltimes.cn/page/{}/{}.shtml".format(
+                    ymonth, page
+                )
                 news_json = parse_article(url)
                 yield news_json
 
-            except:
+            except TypeError:
                 print("This url is not available")
