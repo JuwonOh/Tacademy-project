@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import torch
 import transformers
+from config import PathConfig
 from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
@@ -20,6 +21,129 @@ from transformers import (
 
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
+
+
+class NewspieceModeling(PathConfig):
+    def __init__(self):
+        PathConfig.__init__(self)
+
+    def run_mobilebert(
+        self, batch_size, epoch, random_seed, model_directory, data_directory
+    ):
+        """
+        # Description: sklearn API를 사용하여 모델을 학습하고, 예측에 사용할 모델과 기록할 지표들을 반환합니다.
+        -------------
+        # Parameter
+        - X: train data (feature)
+        - y: train data (label)
+        - n_estimator: The number of trees in the forest (hyper parameter)
+        -------------
+        # Return
+        : model object, model information(metric, parameter)
+        """
+        if not os.path.exists(model_directory):
+            os.makedirs(model_directory)
+
+        # random seed 지정
+        np.random.seed(random_seed)
+        torch.manual_seed(random_seed)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        # model 지정. MOBILE BERT이외의 변수를 선택 할 수 있도록 차후 변경 예정.
+        PRE_TRAINED_MODEL_NAME = "google/mobilebert-uncased"
+        tokenizer = MobileBertTokenizer.from_pretrained(
+            PRE_TRAINED_MODEL_NAME  # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
+        )
+        # batch size
+        BATCH_SIZE = batch_size
+        # 원 자료에서 label이 있는 column
+        tag = "sentiment"
+
+        # data split
+        train_df, valid_df = load_dataset(tag, data_directory)
+        print(train_df)
+        print(valid_df)
+        df_train, df_test = train_test_split(
+            train_df, test_size=0.2, random_state=random_seed
+        )
+
+        # load dataset
+        train_dataset = SentimentDataset(
+            df_train.sentence.values,
+            df_train.sentiment.values,
+            tokenizer,
+            max_len=512,
+        )
+        train_dataloader = DataLoader(
+            train_dataset, batch_size=BATCH_SIZE, num_workers=0
+        )
+
+        test_dataset = SentimentDataset(
+            df_test.sentence.values,
+            df_test.sentiment.values,
+            tokenizer,
+            max_len=512,
+        )
+        test_dataloader = DataLoader(
+            test_dataset, batch_size=BATCH_SIZE, num_workers=0
+        )
+        # torch dataloader 지정.
+        data = next(iter(train_dataloader))
+
+        bert_model = MobileBertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
+
+        # 지정한 classifier에 label의 수와 모델이름을 넣는다.
+        model = SentimentClassifier(2)
+        model = model.to(device)
+
+        # gpu cpu와 메모리를 비움. 실 사용에서 주의
+        import gc
+
+        gc.collect()
+        torch.cuda.empty_cache()
+
+        EPOCHS = epoch  # 바꿔야할 파라미터
+        optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
+        total_steps = len(train_dataloader) * EPOCHS
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer, num_warmup_steps=10, num_training_steps=total_steps
+        )
+        loss_fn = nn.CrossEntropyLoss().to(device)
+
+        history = defaultdict(list)
+
+        # 실제 학습 코드
+        best_accuracy = 0
+        for epoch in range(EPOCHS):
+            print("start {}th train".format(epoch))
+
+            train_acc, train_loss = train_epoch(
+                model,
+                train_dataloader,
+                loss_fn,
+                optimizer,
+                device,
+                scheduler,
+                len(df_train),
+            )
+
+            val_acc, val_loss = eval_model(
+                model, test_dataloader, loss_fn, device, len(df_test)
+            )
+
+            print(
+                f"Epoch [{epoch + 1}/{EPOCHS}] Train loss: {train_loss} acc: {train_acc} | Val loss: {val_loss} acc: {val_acc}"
+            )
+
+            print()
+            history["train_acc"].append(train_acc)
+            history["train_loss"].append(train_loss)
+            history["val_acc"].append(val_acc)
+            history["val_loss"].append(val_loss)
+
+            if val_acc > best_accuracy:
+                torch.save(model.state_dict(), "mobilebert_model.pt")
+                best_accuracy = val_acc
 
 
 def load_dataset(tag, data_directory):
@@ -219,151 +343,3 @@ def eval_model(model, data_loader, loss_fn, device, n_examples):
             correct_predictions += torch.sum(preds == targets)
             losses.append(loss.item())
     return correct_predictions.double() / n_examples, np.mean(losses)
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model",
-        type=str,
-        default="google/mobilebert-uncased",
-        help="사용할 모델을 선택하시오. 차후에 하위 파일로 모델을 분리할 예정.",
-    )
-    parser.add_argument(
-        "--batch_size",
-        type=int,
-        default=4,
-        help="batch size를 입력하시오.",
-    )
-    parser.add_argument(
-        "--model_directory",
-        type=str,
-        default="./model",
-        help="Output model directory",
-    )
-    parser.add_argument(
-        "--data_directory",
-        type=str,
-        default="./data",
-        help="input data directory",
-    )
-    parser.add_argument("--epoch", type=int, default=1, help="epoch를 선택하시오.")
-    parser.add_argument(
-        "--random_seed", type=int, default=42, help="random_seed를 선택하시오."
-    )
-
-    args = parser.parse_args()
-    model = args.model
-    batch_size = args.batch_size
-    model_directory = args.model_directory
-    data_directory = args.data_directory
-    epoch = args.epoch
-    random_seed = args.random_seed
-
-    # check output directory
-    if not os.path.exists(model_directory):
-        os.makedirs(model_directory)
-
-    ## random seed 지정
-    RANDOM_SEED = random_seed
-    np.random.seed(RANDOM_SEED)
-    torch.manual_seed(RANDOM_SEED)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    ## model 지정. MOBILE BERT이외의 변수를 선택 할 수 있도록 차후 변경 예정.
-    PRE_TRAINED_MODEL_NAME = model
-    tokenizer = MobileBertTokenizer.from_pretrained(
-        PRE_TRAINED_MODEL_NAME  # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
-    )
-    ## batch size
-    BATCH_SIZE = batch_size
-    ## 원 자료에서 label이 있는 column
-    tag = "sentiment"
-
-    ## data split
-    train_df, valid_df = load_dataset(tag, data_directory)
-    df_train, df_test = train_test_split(
-        train_df, test_size=0.2, random_state=RANDOM_SEED
-    )
-
-    ## load dataset
-    train_dataset = SentimentDataset(
-        df_train.sentence.values,
-        df_train.sentiment.values,
-        tokenizer,
-        max_len=512,
-    )
-    train_dataloader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, num_workers=0
-    )
-
-    test_dataset = SentimentDataset(
-        df_test.sentence.values,
-        df_test.sentiment.values,
-        tokenizer,
-        max_len=512,
-    )
-    test_dataloader = DataLoader(
-        test_dataset, batch_size=BATCH_SIZE, num_workers=0
-    )
-    ## torch dataloader 지정.
-    data = next(iter(train_dataloader))
-
-    bert_model = MobileBertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
-
-    ## 지정한 classifier에 label의 수와 모델이름을 넣는다.
-    model = SentimentClassifier(2)
-    model = model.to(device)
-
-    ## gpu cpu와 메모리를 비움. 실 사용에서 주의
-    import gc
-
-    gc.collect()
-    torch.cuda.empty_cache()
-
-    EPOCHS = epoch  ## 바꿔야할 파라미터
-    optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
-    total_steps = len(train_dataloader) * EPOCHS
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer, num_warmup_steps=10, num_training_steps=total_steps
-    )
-    loss_fn = nn.CrossEntropyLoss().to(device)
-
-    history = defaultdict(list)
-
-    ## 실제 학습 코드
-    best_accuracy = 0
-    for epoch in range(EPOCHS):
-        print("start {}th train".format(epoch))
-
-        train_acc, train_loss = train_epoch(
-            model,
-            train_dataloader,
-            loss_fn,
-            optimizer,
-            device,
-            scheduler,
-            len(df_train),
-        )
-
-        val_acc, val_loss = eval_model(
-            model, test_dataloader, loss_fn, device, len(df_test)
-        )
-
-        print(
-            f"Epoch [{epoch + 1}/{EPOCHS}] Train loss: {train_loss} acc: {train_acc} | Val loss: {val_loss} acc: {val_acc}"
-        )
-
-        print()
-        history["train_acc"].append(train_acc)
-        history["train_loss"].append(train_loss)
-        history["val_acc"].append(val_acc)
-        history["val_loss"].append(val_loss)
-
-        if val_acc > best_accuracy:
-            torch.save(model.state_dict(), "mobilebert_model.pt")
-            best_accuracy = val_acc
-
-
-if __name__ == "__main__":
-    main()

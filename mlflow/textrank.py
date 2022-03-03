@@ -1,15 +1,12 @@
 import re
-from collections import Counter
-
-import numpy as np
-from scipy.sparse import csr_matrix
-
-pbar = ProgressBar()
+from collections import Counter, defaultdict
 from operator import itemgetter
 
 import nltk
+import numpy as np
 from nltk.tag import pos_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
+from scipy.sparse import csr_matrix
 from sklearn.preprocessing import normalize
 
 ## textrank는 lovit의 https://lovit.github.io/nlp/2019/04/30/textrank/에서 가져왔습니다.
@@ -85,3 +82,38 @@ def pagerank(x, df=0.85, max_iter=30):
         R = df * (A * R) + bias
 
     return R
+
+
+def textrank_keyword(
+    input_text,
+    tokenize=nltk_tagger,
+    min_count=2,
+    window=5,
+    min_cooccurrence=2,
+    df=0.85,
+    max_iter=30,
+    topk=30,
+):
+    sents = sent_tokenize(input_text)
+    g, idx_to_vocab = word_graph(
+        sents, tokenize, min_count, window, min_cooccurrence
+    )
+    R = pagerank(g, df, max_iter).reshape(-1)
+    idxs = R.argsort()[-topk:]
+    keywords = [(idx_to_vocab[idx], R[idx]) for idx in reversed(idxs)]
+    return keywords
+
+
+from operator import itemgetter
+
+
+def textrank_list_keywords(input_text, topk_length=10):
+    tupled_keywords = textrank_keyword(
+        sents=sent_tokenize(input_text),
+        tokenize=nltk_tagger,
+        min_count=2,
+        window=5,
+        min_cooccurrence=2,
+        topk=topk_length,
+    )
+    return list(map(itemgetter(0), tupled_keywords))
