@@ -4,9 +4,9 @@ import re
 
 import pandas as pd
 import torch
+from config import PathConfig
 from torch import nn
 from transformers import MobileBertModel, MobileBertTokenizer
-from config import PathConfig
 
 
 class SentimentClassifier(nn.Module):
@@ -72,12 +72,13 @@ class inference_class(PathConfig):
 
     def inference_sentence(self, input_text: str, PRE_TRAINED_MODEL_NAME):
 
-        PRE_TRAINED_MODEL_NAME = "google/mobilebert-uncased"  # 이 부분 코드가 자연스럽지 못함. 차후 수정
+        PRE_TRAINED_MODEL_NAME = (
+            "google/mobilebert-uncased"  # 이 부분 코드가 자연스럽지 못함. 차후 수정
+        )
         model = SentimentClassifier(2)
         model.load_state_dict(
             # 모델 위치 변경 필요.
-            torch.load(self.model_path,
-                       map_location="cpu"),  # model_server
+            torch.load(self.model_path, map_location="cpu"),  # model_server
             strict=False,
         )
         model = model.to("cpu")

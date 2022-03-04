@@ -1,35 +1,31 @@
 # Library Imort
-import sys
 # argparse는 cmd에서 main.py를 실행하여 train할 때, "사용하고자 하는 모델 선택, hyperparameter 선택"을 위해 사용된다.
 import argparse
-
-# ex) $ python main.py --is_keras 0 --n_estimator 120
-
+import sys
 
 # 아래와 같이 mlflow는 Python API로 ML/DL Library or Framework를 지원함(sklearn, tensorflow or pytorch etc.)
 import mlflow
-from mlflow import sklearn as ml_sklearn  # MLflow의 Python API
-from mlflow import tensorflow as ml_tf  # MLflow의 ML Framework
-
 
 # experiment, model 등을 기록하는 Library
-from mlflow import log_artifact, log_artifacts  # MLflow에서 artifacts를 기록
-from mlflow import (
+from mlflow import (  # MLflow에서 artifacts를 기록; MLflow에서 지원하는 metric을 저장하는 library -> -s가 붙으면 딕셔너리(key-value) 형태로 여러 metrics을 저장; MLflow에서 지원하는 parameter를 저장하는 library -> -s가 붙으면 딕셔너리(key-value) 형태로 여러 parameters를 저장
+    log_artifact,
+    log_artifacts,
     log_metric,
     log_metrics,
-)  # MLflow에서 지원하는 metric을 저장하는 library -> -s가 붙으면 딕셔너리(key-value) 형태로 여러 metrics을 저장
-from mlflow import (
     log_param,
     log_params,
-)  # MLflow에서 지원하는 parameter를 저장하는 library -> -s가 붙으면 딕셔너리(key-value) 형태로 여러 parameters를 저장
-from mlflow.models.signature import (
+)
+from mlflow import sklearn as ml_sklearn  # MLflow의 Python API
+from mlflow import tensorflow as ml_tf  # MLflow의 ML Framework
+from mlflow.models.signature import (  # predict 할 때 사용되는 input data와 output data의 feature name과 dtype을 알 수 있게 해주는 library
     infer_signature,
-)  # predict 할 때 사용되는 input data와 output data의 feature name과 dtype을 알 수 있게 해주는 library
-
+)
 
 # py 파일로부터 생성된 class를 아래와 같이 import 할 수 있음
 # titanic.py 파일에서 정의된 'TitanicMain()' class를 import
 from titanic import TitanicMain
+
+# ex) $ python main.py --is_keras 0 --n_estimator 120
 
 
 def _str2bool(v):
@@ -92,7 +88,9 @@ else:
 
 
 # 우리는 interpreter에서 실행할 것이다. 위의 설명에 따라 현재 파일인 main.py를 interpreter에서 실행하면 if 아래에 있는 code들을 실행할 것이다.
-if __name__ == "__main__":  # 파이썬에서 가장 일반적으로 사용하는 구문으로, 해당 어플리케이션이 모듈로 동작할 수 있도록 해준다.
+if (
+    __name__ == "__main__"
+):  # 파이썬에서 가장 일반적으로 사용하는 구문으로, 해당 어플리케이션이 모듈로 동작할 수 있도록 해준다.
 
     # argparse (interpreter에서 모듈 실행시 지정할 Arguments)
     argument_parser = (
@@ -114,7 +112,9 @@ if __name__ == "__main__":  # 파이썬에서 가장 일반적으로 사용하�
         default=100,
     )  # default: 기본값을 지정할 수 있다.
 
-    args = argument_parser.parse_args()  # parse_args(): 위에서 입력받은 인자값들을 args에 저장
+    args = (
+        argument_parser.parse_args()
+    )  # parse_args(): 위에서 입력받은 인자값들을 args에 저장
 
     # 예외처리
     try:  # try 아래 code를 실행중에 오류가 발생하면 ( is_keras에 0 or 1 이외의 값이 할당되면 )

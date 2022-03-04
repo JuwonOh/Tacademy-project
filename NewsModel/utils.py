@@ -38,7 +38,8 @@ japan_text = add_lowercase_country_keywords(
     ["Japan", "Fumio Kishida", "Kishida", "Japanese"]
 )
 russia_text = add_lowercase_country_keywords(
-    ["Russia", "Putin", "kremlin", "Russian"])
+    ["Russia", "Putin", "kremlin", "Russian"]
+)
 india_text = add_lowercase_country_keywords(
     [
         "India",
@@ -148,15 +149,7 @@ italy_text = add_lowercase_country_keywords(
 
 countrykeywords_dictionary = dict(
     zip(
-        [
-            "USA",
-            "China",
-            "S.Korea",
-            "N.Korea",
-            "Japan",
-            "Russia",
-            "India"
-        ],
+        ["USA", "China", "S.Korea", "N.Korea", "Japan", "Russia", "India"],
         [
             us_text,
             china_text,
@@ -164,7 +157,7 @@ countrykeywords_dictionary = dict(
             northkorea_text,
             japan_text,
             russia_text,
-            india_text
+            india_text,
         ],
     )
 )

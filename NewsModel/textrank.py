@@ -1,14 +1,12 @@
 import re
 from collections import Counter, defaultdict
-
-import numpy as np
-from scipy.sparse import csr_matrix
-
 from operator import itemgetter
 
 import nltk
+import numpy as np
 from nltk.tag import pos_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
+from scipy.sparse import csr_matrix
 from sklearn.preprocessing import normalize
 
 ## textrank는 lovit의 https://lovit.github.io/nlp/2019/04/30/textrank/에서 가져왔습니다.
@@ -17,7 +15,9 @@ from sklearn.preprocessing import normalize
 def nltk_tagger(input_string):
     pos_output = pos_tag(word_tokenize(input_string))
     nounpos_output = [
-        each_pos for each_pos in pos_output if len(re.findall(r"NN", each_pos[1])) > 0
+        each_pos
+        for each_pos in pos_output
+        if len(re.findall(r"NN", each_pos[1])) > 0
     ]
     return list(map(itemgetter(0), nounpos_output))
 
@@ -60,7 +60,9 @@ def scan_vocabulary(sents, tokenize, min_count=2):
     return idx_to_vocab, vocab_to_idx
 
 
-def word_graph(sents, tokenize=None, min_count=2, window=2, min_cooccurrence=2):
+def word_graph(
+    sents, tokenize=None, min_count=2, window=2, min_cooccurrence=2
+):
     idx_to_vocab, vocab_to_idx = scan_vocabulary(sents, tokenize, min_count)
     tokens = [tokenize(sent) for sent in sents]
     g = cooccurrence(tokens, vocab_to_idx, window, min_cooccurrence)
@@ -93,7 +95,9 @@ def textrank_keyword(
     topk=30,
 ):
     sents = sent_tokenize(input_text)
-    g, idx_to_vocab = word_graph(sents, tokenize, min_count, window, min_cooccurrence)
+    g, idx_to_vocab = word_graph(
+        sents, tokenize, min_count, window, min_cooccurrence
+    )
     R = pagerank(g, df, max_iter).reshape(-1)
     idxs = R.argsort()[-topk:]
     keywords = [(idx_to_vocab[idx], R[idx]) for idx in reversed(idxs)]

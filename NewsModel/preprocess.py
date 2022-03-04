@@ -1,8 +1,8 @@
-
 import re
 from collections import Counter
 from itertools import chain
 from operator import itemgetter
+
 import numpy as np
 import pandas as pd
 from nltk import tokenize
@@ -65,7 +65,8 @@ def morethan_two_countries(input_text):
             len(
                 re.findall(
                     "|".join(
-                        countrykeywords_dictionary[each_country_keywords]),
+                        countrykeywords_dictionary[each_country_keywords]
+                    ),
                     input_text,
                 )
             )
@@ -98,7 +99,9 @@ def sentence_to_nerlist(input_sentence):
     """
     try:
         ner_output_list = [
-            each for each in model.predict(input_sentence) if each["tag"] != "O"
+            each
+            for each in model.predict(input_sentence)
+            if each["tag"] != "O"
         ]
 
         if len(ner_output_list) != 0:
@@ -123,7 +126,8 @@ def sentence_to_nerlist(input_sentence):
                         while ner_output_df["first_tag"][temp_idx + 1] == "I":
                             temp_idx += 1
                             temp_entity_list.append(
-                                ner_output_df["word"][temp_idx])
+                                ner_output_df["word"][temp_idx]
+                            )
                     except KeyError:
                         pass
                 if len(temp_entity_list) != 0:
@@ -136,10 +140,14 @@ def sentence_to_nerlist(input_sentence):
 
 
 def corpus_to_nerlist(input_corpus):
-    return list(set(chain.from_iterable(map(sentence_to_nerlist, input_corpus))))
+    return list(
+        set(chain.from_iterable(map(sentence_to_nerlist, input_corpus)))
+    )
 
 
-def sort_sentence_importance(input_text, standard="mean", topn=3, countryfilter=False):
+def sort_sentence_importance(
+    input_text, standard="mean", topn=3, countryfilter=False
+):
     """
     Description: textrank 알고리즘을 기반으로 들어온 문장의 중요도를 뽑는 함수
 
@@ -163,7 +171,8 @@ def sort_sentence_importance(input_text, standard="mean", topn=3, countryfilter=
     for idx, each_sentence in enumerate(sent_tokenize(input_text)):
         sentence_value = []
         pattern = re.compile(
-            "photo|Photo|Related article|RELATED ARTICLES|Xinhua")
+            "photo|Photo|Related article|RELATED ARTICLES|Xinhua"
+        )
         if not pattern.search(each_sentence):
             for each_token in word_tokenize(each_sentence):
                 try:
@@ -196,8 +205,9 @@ def sort_sentence_importance(input_text, standard="mean", topn=3, countryfilter=
             lambda x: morethan_two_countries(x)[0]
         )(output_df["sentence"])
         output_df = output_df[output_df["numcountryfilter"] == True]
-    output_df = output_df.sort_values(
-        standard, ascending=False).reset_index(drop=True)
+    output_df = output_df.sort_values(standard, ascending=False).reset_index(
+        drop=True
+    )
     return output_df["sentence"][:topn].tolist()
 
 
@@ -220,20 +230,24 @@ def quasiNER_extractor3(dataframe, nameof_articlebody_column):
         nameof_articlebody_column
     ]
     quasinerdf_output_list = []
-    dataframe['doc_id'] = ''
-    for doc_id in range(len(dataframe["lowercase_" + nameof_articlebody_column])):
-        dataframe['doc_id'][doc_id] = doc_id
-        input_text = dataframe["lowercase_" +
-                               nameof_articlebody_column][doc_id]
+    dataframe["doc_id"] = ""
+    for doc_id in range(
+        len(dataframe["lowercase_" + nameof_articlebody_column])
+    ):
+        dataframe["doc_id"][doc_id] = doc_id
+        input_text = dataframe["lowercase_" + nameof_articlebody_column][
+            doc_id
+        ]
         try:
             sentence = " ".join(
                 sort_sentence_importance(input_text, standard="mean", topn=3)
             )
         except:
-            sentence = ''
+            sentence = ""
 
         vectorized_morethan_two_countries = np.vectorize(
-            morethan_two_countries, otypes=[list])
+            morethan_two_countries, otypes=[list]
+        )
         output_list = vectorized_morethan_two_countries(sentence)
         output_df = pd.DataFrame.from_records(
             [output_list], columns=["isvalid", "list_of_countries"]
@@ -250,5 +264,6 @@ def quasiNER_extractor3(dataframe, nameof_articlebody_column):
     del quasinerdf_output_df["isvalid"]
     all_df = pd.merge(dataframe, quasinerdf_output_df)
     return all_df
+
 
 # def NER_check(dataframe, nameof_articlebody_column):
