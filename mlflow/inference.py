@@ -6,13 +6,14 @@ import pandas as pd
 import torch
 from torch import nn
 from transformers import MobileBertModel, MobileBertTokenizer
+from config import PathConfig
 
 
 class SentimentClassifier(nn.Module):
     def __init__(self, n_classes):
         super(SentimentClassifier, self).__init__()
         self.bert = MobileBertModel.from_pretrained(
-            "google/mobilebert-uncased"
+            "google/mobilebert-uncased", return_dict=False
         )
         self.drop = nn.Dropout(p=0.3)
         self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
@@ -65,17 +66,18 @@ def inference(input_text, model, PRE_TRAINED_MODEL_NAME):
     return softmax_prob, prediction
 
 
-class Predict:
-    # def __init__(self, model: str):
-    #    self.logged_model = "runs:/" + model + "/ml_model"
+class inference_class(PathConfig):
+    def __init__(self):
+        PathConfig.__init__(self)
 
-    def inference_sentence(self, input_text: str):
+    def inference_sentence(self, input_text: str, PRE_TRAINED_MODEL_NAME):
 
-        PRE_TRAINED_MODEL_NAME = "google/mobilebert-uncased"
+        PRE_TRAINED_MODEL_NAME = "google/mobilebert-uncased"  # 이 부분 코드가 자연스럽지 못함. 차후 수정
         model = SentimentClassifier(2)
         model.load_state_dict(
             # 모델 위치 변경 필요.
-            torch.load("model/mobilebert.pt", map_location="cpu"),
+            torch.load(self.model_path,
+                       map_location="cpu"),  # model_server
             strict=False,
         )
         model = model.to("cpu")

@@ -17,8 +17,13 @@ class PathConfig:
         """
         self.project_path = os.getcwd()
         # 받아온 작업경로(project_path)에서 data/pgdata/titanic 경로를 titanic_path에 초기화
+        # json_server
         self.news_path = f"{self.project_path}/data/pgdata/news_json"
+        # labeled_server
         self.labeled_path = f"{self.project_path}/data/pgdata/labeled_data"
+        # model_server- 일단은 config에서 사용하지는 않지만, 사용할 수 잇을지 몰라서.
+        # 이부분 수정 필요. 자유롭게 모델을 바꿀 수 있게.
+        self.model_path = f"{self.project_path}/model/mobilebert.pt"
         # 차후에 server, gcp에서 받아오는 부분을 수정해야 한다.
 
 

@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import torch
 import transformers
-from config import PathConfig
 from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
@@ -18,6 +17,7 @@ from transformers import (
     MobileBertTokenizer,
     get_linear_schedule_with_warmup,
 )
+from config import PathConfig
 
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
@@ -27,9 +27,7 @@ class NewspieceModeling(PathConfig):
     def __init__(self):
         PathConfig.__init__(self)
 
-    def run_mobilebert(
-        self, batch_size, epoch, random_seed, model_directory, data_directory
-    ):
+    def run_mobilebert(self, batch_size, epoch, random_seed, model_directory, data_directory):
         """
         # Description: sklearn API를 사용하여 모델을 학습하고, 예측에 사용할 모델과 기록할 지표들을 반환합니다.
         -------------
@@ -37,7 +35,7 @@ class NewspieceModeling(PathConfig):
         - X: train data (feature)
         - y: train data (label)
         - n_estimator: The number of trees in the forest (hyper parameter)
-        -------------
+        -------------  
         # Return
         : model object, model information(metric, parameter)
         """
@@ -142,7 +140,8 @@ class NewspieceModeling(PathConfig):
             history["val_loss"].append(val_loss)
 
             if val_acc > best_accuracy:
-                torch.save(model.state_dict(), "mobilebert_model.pt")
+                torch.save(model.state_dict(),
+                           self.model_path)  # model path
                 best_accuracy = val_acc
 
 

@@ -1,8 +1,8 @@
-import json
-import os
-
 import pandas as pd
-from utils import notuse_category, use_category
+import os
+import json
+
+from utils import use_category, notuse_category
 
 # data를 가져오는 class
 
@@ -20,9 +20,7 @@ class DataIOSteam:
         : 지정한 path에 위치한 train.csv data
         """
         json_files = [
-            pos_json
-            for pos_json in os.listdir(path)
-            if pos_json.endswith(".json")
+            pos_json for pos_json in os.listdir(path) if pos_json.endswith(".json")
         ]
 
         json_data = pd.DataFrame(
@@ -44,21 +42,13 @@ class DataIOSteam:
                 category = json_text["category"].lower()
 
                 # here I push a list of data into a pandas DataFrame at row given by 'index'
-                json_data.loc[index] = [
-                    date,
-                    title,
-                    content,
-                    source,
-                    url,
-                    category,
-                ]
+                json_data.loc[index] = [date, title,
+                                        content, source, url, category]
         # 필요 없는 카테고리에 속하는 기사들을 제외한다. 이 카테고리에 대한 부분은 지속적으로 보완해야 한다.
         json_data = json_data[
-            json_data["category"].str.contains(use_category)
-        ].reset_index(drop=True)
-        json_data = json_data[
-            ~json_data["category"].str.contains(notuse_category)
-        ].reset_index(drop=True)
+            json_data["category"].str.contains(use_category)].reset_index(drop=True)
+        json_data = json_data[~json_data["category"].str.contains(
+            notuse_category)].reset_index(drop=True)
 
         json_data["title"] = json_data["title"].str.replace("\n", " ")
         json_data["content"] = json_data["content"].str.replace("\n", " ")
@@ -77,9 +67,7 @@ class DataIOSteam:
         """
 
         xlsx_files = [
-            pos_json
-            for pos_json in os.listdir(path)
-            if pos_json.endswith(".xlsx")
+            pos_json for pos_json in os.listdir(path) if pos_json.endswith(".xlsx")
         ]
 
         output_list = []
