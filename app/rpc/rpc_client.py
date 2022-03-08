@@ -43,7 +43,7 @@ class FibonacciRpcClient:
 
 
 class NLPpredicting:
-"""
+    """
 rpc로 원격 인스턴스에 작업을 할당하는 코드와 원격 인스턴스에서 처리한 결과를 리턴받는 클래스
 """
     def __init__(self):

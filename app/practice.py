@@ -193,15 +193,15 @@ import psycopg2
         
 #         return result
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+# from sqlalchemy import create_engine
+# from sqlalchemy.ext.declarative import declarative_base
+# from sqlalchemy.orm import sessionmaker
 
-SQLARCHEMY_DATABASE_URL = "postgresql://postgres:mlflow@34.64.203.39/titanic_db"
+# SQLARCHEMY_DATABASE_URL = "postgresql://postgres:mlflow@34.64.203.39/titanic_db"
 
-engine = create_engine( SQLARCHEMY_DATABASE_URL )
+# engine = create_engine( SQLARCHEMY_DATABASE_URL )
 
-SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)
+# SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)
 
 # Base = declarative_base()
 
