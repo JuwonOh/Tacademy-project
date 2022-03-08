@@ -1,9 +1,9 @@
 import pandas as pd
 from config import PathConfig
-from dataio import DataIOSteam
+from dataloader.dataio import DataIOSteam
 from inference import inference_class
-from nlp_model import NewspieceModeling
 from preprocess import NewspieacePreprocess
+from trainer.nlp_model import NewspieceModeling
 
 
 class NewspieaceMain(

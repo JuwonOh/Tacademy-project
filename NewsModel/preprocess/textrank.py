@@ -2,14 +2,15 @@ import re
 from collections import Counter, defaultdict
 from operator import itemgetter
 
-import nltk
 import numpy as np
+import pandas as pd
+from countryset import morethan_two_countries
 from nltk.tag import pos_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
 from scipy.sparse import csr_matrix
 from sklearn.preprocessing import normalize
 
-## textrank는 lovit의 https://lovit.github.io/nlp/2019/04/30/textrank/에서 가져왔습니다.
+# textrank는 lovit의 https://lovit.github.io/nlp/2019/04/30/textrank/에서 가져왔습니다.
 
 
 def nltk_tagger(input_string):
@@ -104,9 +105,6 @@ def textrank_keyword(
     return keywords
 
 
-from operator import itemgetter
-
-
 def textrank_list_keywords(input_text, topk_length=10):
     tupled_keywords = textrank_keyword(
         sents=sent_tokenize(input_text),
@@ -117,3 +115,69 @@ def textrank_list_keywords(input_text, topk_length=10):
         topk=topk_length,
     )
     return list(map(itemgetter(0), tupled_keywords))
+
+
+def sort_sentence_importance(
+    input_text, standard="mean", topn=3, countryfilter=False
+):
+    """
+    Description: textrank 알고리즘을 기반으로 들어온 문장의 중요도를 뽑는 함수
+
+    Artuments
+    ---------
+    input_article : str
+        3문장 이내의 입력 문장.
+    standard: str
+        중요성을 판단하는 기준
+    topn: int
+        문장을 몇개까지 뽑을것 인지에 대해 선택하는 agrs.
+    countryfilter: boolean
+        2개 이상의 문장이 들어간 국가쌍을 뽑으면 True, 아니면 False
+
+    return: pandas.series
+    ---------
+
+    """
+    textrank_dict = dict(textrank_keyword(input_text, topk=30))
+    output_list = []
+    for idx, each_sentence in enumerate(sent_tokenize(input_text)):
+        sentence_value = []
+        pattern = re.compile(
+            "photo|Photo|Related article|RELATED ARTICLES|Xinhua"
+        )
+        if not pattern.search(each_sentence):
+            for each_token in word_tokenize(each_sentence):
+                try:
+                    sentence_value.append(textrank_dict[each_token])
+                except:
+                    sentence_value.append(0)
+                    pass
+                binary_sentence_value = list(
+                    np.vectorize(lambda x: 1 if x > 0 else 0)(sentence_value)
+                )
+
+            importance_mean = np.mean(sentence_value)
+            importance_sum = np.sum(sentence_value)
+            importance_ratio = np.mean(binary_sentence_value)
+            output_list.append(
+                (
+                    idx,
+                    each_sentence,
+                    importance_mean,
+                    importance_sum,
+                    importance_ratio,
+                )
+            )
+
+    output_df = pd.DataFrame(
+        output_list, columns=["idx", "sentence", "mean", "sum", "ratio"]
+    )
+    if countryfilter:
+        output_df["numcountryfilter"] = np.vectorize(
+            lambda x: morethan_two_countries(x)[0]
+        )(output_df["sentence"])
+        output_df = output_df[output_df["numcountryfilter"] == True]
+    output_df = output_df.sort_values(standard, ascending=False).reset_index(
+        drop=True
+    )
+    return output_df["sentence"][:topn].tolist()

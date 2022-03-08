@@ -9,13 +9,15 @@ import pandas as pd
 import torch
 import transformers
 from config import PathConfig
+from dataloader.dataloader import SentimentDataset, load_dataset
+from model.model import SentimentClassifier
 from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from transformers import (
     AdamW,
-    MobileBertModel,
-    MobileBertTokenizer,
+    AutoModel,
+    AutoTokenizer,
     get_linear_schedule_with_warmup,
 )
 
@@ -27,8 +29,14 @@ class NewspieceModeling(PathConfig):
     def __init__(self):
         PathConfig.__init__(self)
 
-    def run_mobilebert(
-        self, batch_size, epoch, random_seed, model_directory, data_directory
+    def run_bert(
+        self,
+        pretrained_model_name,
+        batch_size,
+        epoch,
+        random_seed,
+        model_directory,
+        data_directory,
     ):
         """
         # Description: sklearn API를 사용하여 모델을 학습하고, 예측에 사용할 모델과 기록할 지표들을 반환합니다.
@@ -50,8 +58,8 @@ class NewspieceModeling(PathConfig):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # model 지정. MOBILE BERT이외의 변수를 선택 할 수 있도록 차후 변경 예정.
-        PRE_TRAINED_MODEL_NAME = "google/mobilebert-uncased"
-        tokenizer = MobileBertTokenizer.from_pretrained(
+        PRE_TRAINED_MODEL_NAME = pretrained_model_name
+        tokenizer = AutoTokenizer.from_pretrained(
             PRE_TRAINED_MODEL_NAME  # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
         )
         # batch size
@@ -90,10 +98,10 @@ class NewspieceModeling(PathConfig):
         # torch dataloader 지정.
         data = next(iter(train_dataloader))
 
-        bert_model = MobileBertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
+        bert_model = AutoModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
 
         # 지정한 classifier에 label의 수와 모델이름을 넣는다.
-        model = SentimentClassifier(2)
+        model = SentimentClassifier(2, PRE_TRAINED_MODEL_NAME)
         model = model.to(device)
 
         # gpu cpu와 메모리를 비움. 실 사용에서 주의
@@ -144,123 +152,6 @@ class NewspieceModeling(PathConfig):
             if val_acc > best_accuracy:
                 torch.save(model.state_dict(), self.model_path)  # model path
                 best_accuracy = val_acc
-
-
-def load_dataset(tag, data_directory):
-    """
-    Description: 본 데이터 셋에서는 응답자가 의미없다는 답변을 할 수 있다.
-    의미 없다는 답변을 받은 데이터는 'irrelevant', 의미있는 답변이 담긴 데이터 프레임을 받은 데이터 프레임은 'sentiment'로 선택한다.
-    ---------
-    Arguments
-
-    tag : str
-        'irrelevant', 'sentiment'로 원하는 데이터를 뽑아낸다.
-    ---------
-    Return: pandas.Dataframe
-    ---------
-
-    """
-    if tag == "irrelevant":
-        train_df = pd.read_csv(
-            "{}/irrelevant_train.tsv".format(data_directory), sep="\t"
-        )
-        valid_df = pd.read_csv(
-            "{}/irrelevant_test.tsv".format(data_directory), sep="\t"
-        )
-    elif tag == "sentiment":
-        train_df = pd.read_csv(
-            "{}/sentiment_train.tsv".format(data_directory), sep="\t"
-        )
-        valid_df = pd.read_csv(
-            "{}/sentiment_test.tsv".format(data_directory), sep="\t"
-        )
-    else:
-        train_df = None
-        valid_df = None
-        print("data_directory doesn`t exist")
-
-    return train_df, valid_df
-
-
-class SentimentDataset(Dataset):
-    """
-    Description: 불러온 데이터프레임에서 필요한 정보를 뽑아내고, 임베딩한다.
-    ---------
-    Arguments
-
-    sentences: str
-        문장에 대한 정보를 저장
-    labels : int
-        들어온 문장의 id를 가지고 있는다.
-    tokenizer: str
-        어떤 tokenizer를 사용할지 지정한다.
-    max_len: int
-        문장의 최대 길이를 지정하여 지나치게 긴 문장을 잘라낸다. max_len이 길어지면, padding을 해야하기에 연산이 느려진다.
-    ---------
-    Return: dict. dict안의 value와 item은 다음과 같다.
-
-    sentence: str
-        input에 들어갈 문장정보
-    input_ids: tensor
-        tokenizer가 임베딩한 문장의 정보
-    attention_mask: tensor
-        최대 길이로 지정한 512에서 단어가 차지하는 길이에 대한 정보
-    labels: int
-        분류 모델이 분류할 타겟 변수
-    """
-
-    def __init__(self, sentences, labels, tokenizer, max_len):
-        self.sentences = sentences
-        self.labels = labels
-        self.tokenizer = tokenizer
-        self.max_len = max_len
-
-    def __len__(self):
-        return len(self.sentences)
-
-    def __getitem__(self, item):
-        sentence = str(self.sentences[item])
-        label = self.labels[item]
-
-        encoding = self.tokenizer.encode_plus(
-            sentence,
-            add_special_tokens=True,
-            max_length=self.max_len,
-            return_token_type_ids=False,
-            pad_to_max_length=True,
-            return_attention_mask=True,
-            return_tensors="pt",
-            truncation=True,
-        )
-
-        return {
-            "sentence": sentence,
-            "input_ids": encoding["input_ids"].flatten(),
-            "attention_mask": encoding["attention_mask"].flatten(),
-            "labels": torch.tensor(label, dtype=torch.long),
-        }
-
-
-class SentimentClassifier(nn.Module):
-    """
-    Description: torch의 nn.Module을 사용해서 분류기 클래스를 만든다.
-    ---------
-    """
-
-    def __init__(self, n_classes):
-        super(SentimentClassifier, self).__init__()
-        self.bert = MobileBertModel.from_pretrained(
-            "google/mobilebert-uncased", return_dict=False
-        )
-        self.drop = nn.Dropout(p=0.3)
-        self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
-
-    def forward(self, input_ids, attention_mask):
-        _, pooled_output = self.bert(
-            input_ids=input_ids, attention_mask=attention_mask
-        )
-        output = self.drop(pooled_output)
-        return self.out(output)
 
 
 def train_epoch(

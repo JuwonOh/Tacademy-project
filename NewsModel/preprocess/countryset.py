@@ -1,4 +1,7 @@
 # Country Keyword List
+import re
+
+
 def add_lowercase_country_keywords(input_keyword_list):
     """
     Description: 국가쌍을 뽑아내는데 필요한 키워드가 담긴 dictionary.
@@ -167,15 +170,41 @@ northkorea_text.pop(-7)
 uk_text.pop(-3)
 japan_text.pop(-5)
 
-# using news category
-use_category = "biden|trump|iran|whitehouse|corona|kingdom|europe|africa|security|military|china|hongkong|asia|france|russia|politics|national|security|europe|health|middle East|world|asia|opinion|opinion|africa|Military|politics|us|opinions|health|world|asia|economy|europe|uk|middleeast|africa|australia|india|china|briefing|us|opinion|health|world"
-notuse_category = "society|video|garden|biology|photo|sport|music|art|gallery|filrm|fashion|feature|comics|books|theature|culture"
 
-# using model dict
+def morethan_two_countries(input_text):
+    """
+    Description: 국가쌍에 해당되는 문장을 뽑아주는 함수
 
-model_dic = {
-    "bert": "bert-base-cased",
-    "robert": "roberta-base",
-    "mobilebert": "google/mobilebert-uncased",
-    "Electra": "google/electra-small-discriminator",
-}
+    Artuments
+    ---------
+    input_article : str
+        full article
+
+    return
+    ---------
+    Boolean: True, False
+    """
+    list_of_countries = []
+    counter = 0
+    for each_country_keywords in countrykeywords_dictionary.keys():
+        if (
+            len(
+                re.findall(
+                    "|".join(
+                        countrykeywords_dictionary[each_country_keywords]
+                    ),
+                    input_text,
+                )
+            )
+            > 0
+        ):
+            counter += 1
+            list_of_countries.append(each_country_keywords)
+    list_of_countries = " / ".join(list(set(list_of_countries)))
+
+    if counter >= 3:
+        return False, list_of_countries
+    elif counter > 1:
+        return True, list_of_countries
+    else:
+        return False, list_of_countries
