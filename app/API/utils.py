@@ -133,5 +133,5 @@ def get_pkl_from_gcp(model: str):
 
 # print(get_pkl_from_gcp('241b7d1d60854ff1b49149cbbf82e2fe').predict([[1,1,1]]).tolist())
 
-if __name__ == "__main":
+# if __name__ == "__main__":
     # print(get_pkl_from_gcp('241b7d1d60854ff1b49149cbbf82e2fe').predict([[1,1,1]]).tolist())

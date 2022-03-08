@@ -12,7 +12,7 @@ import pickle, numpy as np
 import pandas as pd
 from google.cloud import storage
 # from router import local, gcp
-from router import gcp, local, fib
+from router import gcp, local, fib, celery
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -121,6 +121,7 @@ app.add_middleware(
 app.include_router(gcp.router)
 app.include_router(local.router)
 app.include_router(fib.router)
+app.include_router(celery.router)
 
 @app.get('/')
 async def root():
