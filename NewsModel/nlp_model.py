@@ -28,8 +28,8 @@ class NewspieceModeling(PathConfig):
         PathConfig.__init__(self)
 
     def run_mobilebert(
-        self, batch_size, epoch, random_seed, model_directory, data_directory
-    ):
+        self, batch_size, epoch, random_seed, model_directory, data_directory 
+    ):## path 미수정.
         """
         # Description: sklearn API를 사용하여 모델을 학습하고, 예측에 사용할 모델과 기록할 지표들을 반환합니다.
         -------------
@@ -147,7 +147,7 @@ class NewspieceModeling(PathConfig):
 
 
 def load_dataset(tag, data_directory):
-    """
+    """## path 미수정.
     Description: 본 데이터 셋에서는 응답자가 의미없다는 답변을 할 수 있다.
     의미 없다는 답변을 받은 데이터는 'irrelevant', 의미있는 답변이 담긴 데이터 프레임을 받은 데이터 프레임은 'sentiment'로 선택한다.
     ---------
