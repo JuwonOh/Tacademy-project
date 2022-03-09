@@ -155,7 +155,6 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
                     + "/{}.pt".format(pretrained_model_name.split("/")[-1]),
                 )  # model path
                 best_accuracy = val_acc
-
                 if is_quantization:
                     quantized_model = torch.quantization.quantize_dynamic(
                         model.to("cpu"), {torch.nn.Linear}, dtype=torch.qint8

@@ -10,7 +10,7 @@ def test():
     return 'API is running'
 
 @router.post('/calculate')
-async def calculate_fibonacci(inputData:Fib):
+def calculate_fibonacci(inputData:Fib):
     fibonacci_rpc = FibonacciRpcClient()
 
     print(" [x] Requesting fib(%s)" % inputData.fibNumber)
@@ -20,7 +20,7 @@ async def calculate_fibonacci(inputData:Fib):
     return response
 
 @router.post('/predict_nlp')
-async def predict_NLP(n: str, m: str):
+def predict_NLP(n: str, m: str):
     nlp_predict = NLPpredicting()
 
     print("[x] Requesting nlp")
