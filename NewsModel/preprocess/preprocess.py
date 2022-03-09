@@ -4,19 +4,13 @@ from itertools import chain
 
 import numpy as np
 import pandas as pd
-from countryset import morethan_two_countries
-from ner import sentence_to_nerlist
 from nltk import tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
+from preprocess.countryset import morethan_two_countries
+from preprocess.ner import sentence_to_nerlist
+from preprocess.textrank import sort_sentence_importance
 from progressbar import ProgressBar
-from textrank import (
-    nltk_tagger,
-    sort_sentence_importance,
-    textrank_keyword,
-    textrank_list_keywords,
-)
 from tqdm import tqdm
-from utils import countrykeywords_dictionary
 
 # 전처리를 구성하는 class
 

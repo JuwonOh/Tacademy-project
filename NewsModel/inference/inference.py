@@ -54,9 +54,11 @@ class inference_class(PathConfig):
     def __init__(self):
         PathConfig.__init__(self)
 
+    # parameter로 어떤 모델을 사용할지 지정할 수 있게 해야한다.
+
     def inference_sentence(self, input_text: str, PRE_TRAINED_MODEL_NAME):
 
-        model = SentimentClassifier(2, PRE_TRAINED_MODEL_NAME)
+        model = SentimentClassifier(PRE_TRAINED_MODEL_NAME, 2)
         model.load_state_dict(
             # 모델 위치 변경 필요.
             torch.load(self.model_path, map_location="cpu"),  # model_server

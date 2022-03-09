@@ -1,4 +1,5 @@
 import pandas as pd
+import torch
 
 
 def load_dataset(tag, data_directory):
@@ -37,7 +38,7 @@ def load_dataset(tag, data_directory):
     return train_df, valid_df
 
 
-class SentimentDataset(Dataset):
+class SentimentDataset:
     """
     Description: 불러온 데이터프레임에서 필요한 정보를 뽑아내고, 임베딩한다.
     ---------

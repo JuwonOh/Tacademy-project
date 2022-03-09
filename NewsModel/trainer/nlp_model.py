@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
 
 
-class NewspieceModeling(PathConfig):
+class NewspieceModeling(PathConfig, SentimentClassifier):
     def __init__(self):
         PathConfig.__init__(self)
 
@@ -37,6 +37,7 @@ class NewspieceModeling(PathConfig):
         random_seed,
         model_directory,
         data_directory,
+        is_quantization,
     ):
         """
         # Description: sklearn API를 사용하여 모델을 학습하고, 예측에 사용할 모델과 기록할 지표들을 반환합니다.
@@ -57,10 +58,8 @@ class NewspieceModeling(PathConfig):
         torch.manual_seed(random_seed)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        # model 지정. MOBILE BERT이외의 변수를 선택 할 수 있도록 차후 변경 예정.
-        PRE_TRAINED_MODEL_NAME = pretrained_model_name
         tokenizer = AutoTokenizer.from_pretrained(
-            PRE_TRAINED_MODEL_NAME  # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
+            pretrained_model_name  # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
         )
         # batch size
         BATCH_SIZE = batch_size
@@ -98,10 +97,10 @@ class NewspieceModeling(PathConfig):
         # torch dataloader 지정.
         data = next(iter(train_dataloader))
 
-        bert_model = AutoModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
+        bert_model = AutoModel.from_pretrained(pretrained_model_name)
 
         # 지정한 classifier에 label의 수와 모델이름을 넣는다.
-        model = SentimentClassifier(2, PRE_TRAINED_MODEL_NAME)
+        model = SentimentClassifier(pretrained_model_name, 2)
         model = model.to(device)
 
         # gpu cpu와 메모리를 비움. 실 사용에서 주의
@@ -150,8 +149,26 @@ class NewspieceModeling(PathConfig):
             history["val_loss"].append(val_loss)
 
             if val_acc > best_accuracy:
-                torch.save(model.state_dict(), self.model_path)  # model path
+                torch.save(
+                    model.state_dict(),
+                    self.model_path
+                    + "/{}.pt".format(pretrained_model_name.split("/")[-1]),
+                )  # model path
                 best_accuracy = val_acc
+
+                if is_quantization:
+                    quantized_model = torch.quantization.quantize_dynamic(
+                        model.to("cpu"), {torch.nn.Linear}, dtype=torch.qint8
+                    )
+                    torch.save(
+                        quantized_model.state_dict(),
+                        self.model_path
+                        + "/quantized_{}.pt".format(
+                            pretrained_model_name.split("/")[-1]
+                        ),
+                    )
+                else:
+                    pass
 
 
 def train_epoch(

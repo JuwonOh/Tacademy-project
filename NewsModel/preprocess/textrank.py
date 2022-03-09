@@ -4,9 +4,9 @@ from operator import itemgetter
 
 import numpy as np
 import pandas as pd
-from countryset import morethan_two_countries
 from nltk.tag import pos_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
+from preprocess.countryset import morethan_two_countries
 from scipy.sparse import csr_matrix
 from sklearn.preprocessing import normalize
 
