@@ -5,25 +5,9 @@ import re
 import pandas as pd
 import torch
 from config import PathConfig
+from model.model import SentimentClassifier
 from torch import nn
-from transformers import MobileBertModel, MobileBertTokenizer
-
-
-class SentimentClassifier(nn.Module):
-    def __init__(self, n_classes):
-        super(SentimentClassifier, self).__init__()
-        self.bert = MobileBertModel.from_pretrained(
-            "google/mobilebert-uncased", return_dict=False
-        )
-        self.drop = nn.Dropout(p=0.3)
-        self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
-
-    def forward(self, input_ids, attention_mask):
-        _, pooled_output = self.bert(
-            input_ids=input_ids, attention_mask=attention_mask
-        )
-        output = self.drop(pooled_output)
-        return self.out(output)
+from transformers import AutoModel, AutoTokenizer
 
 
 def inference(input_text, model, PRE_TRAINED_MODEL_NAME):
@@ -43,7 +27,7 @@ def inference(input_text, model, PRE_TRAINED_MODEL_NAME):
     """
     device = "cpu"
 
-    tokenizer = MobileBertTokenizer.from_pretrained(
+    tokenizer = AutoTokenizer.from_pretrained(
         PRE_TRAINED_MODEL_NAME, return_dict=False
     )
 
@@ -70,12 +54,11 @@ class inference_class(PathConfig):
     def __init__(self):
         PathConfig.__init__(self)
 
+    # parameter로 어떤 모델을 사용할지 지정할 수 있게 해야한다.
+
     def inference_sentence(self, input_text: str, PRE_TRAINED_MODEL_NAME):
 
-        PRE_TRAINED_MODEL_NAME = (
-            "google/mobilebert-uncased"  # 이 부분 코드가 자연스럽지 못함. 차후 수정
-        )
-        model = SentimentClassifier(2)
+        model = SentimentClassifier(PRE_TRAINED_MODEL_NAME, 2)
         model.load_state_dict(
             # 모델 위치 변경 필요.
             torch.load(self.model_path, map_location="cpu"),  # model_server

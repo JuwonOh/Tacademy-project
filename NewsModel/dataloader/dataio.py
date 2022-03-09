@@ -4,8 +4,6 @@ import os
 import pandas as pd
 from utils import notuse_category, use_category
 
-# data를 가져오는 class
-
 
 class DataIOSteam:
     def _get_jsondata(self, path):
