@@ -1,4 +1,4 @@
-import celery_practice
+# import celery_practice
 import cel_predict
 
 type(cel_predict.nlp_working)
