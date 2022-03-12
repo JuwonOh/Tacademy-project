@@ -1,7 +1,7 @@
 import time
 from celery_practice import app
 # from router.celery import app
-from predict_module import NLPpredict
+from API.predict_module import NLPpredict
 
 @app.task
 def nlp_working(text: str):

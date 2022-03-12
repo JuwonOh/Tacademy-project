@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from celery import Celery
 from predict_module import NLPpredict
-import cel_predict
+import worker.cel_predict
 
 router = APIRouter(prefix='/api_with_celery')
 

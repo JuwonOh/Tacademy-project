@@ -118,9 +118,9 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.include_router(gcp.router)
-app.include_router(local.router)
-app.include_router(fib.router)
+# app.include_router(gcp.router)
+# app.include_router(local.router)
+# app.include_router(fib.router)
 app.include_router(celery.router)
 
 @app.get('/')
