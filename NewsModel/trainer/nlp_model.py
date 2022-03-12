@@ -2,8 +2,10 @@ import argparse
 import json
 import os
 import warnings
+from ast import Yield
 from collections import defaultdict
 
+import mlflow.pytorch
 import numpy as np
 import pandas as pd
 import torch
@@ -116,7 +118,7 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
             optimizer, num_warmup_steps=10, num_training_steps=total_steps
         )
         loss_fn = nn.CrossEntropyLoss().to(device)
-
+        # mlflow.pytorch.autolog() autolog를 넣어야 하나
         history = defaultdict(list)
 
         # 실제 학습 코드
@@ -155,6 +157,8 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
                     + "/{}.pt".format(pretrained_model_name.split("/")[-1]),
                 )  # model path
                 best_accuracy = val_acc
+                yield best_accuracy, epoch  # return metric change
+
                 if is_quantization:
                     quantized_model = torch.quantization.quantize_dynamic(
                         model.to("cpu"), {torch.nn.Linear}, dtype=torch.qint8
@@ -168,6 +172,7 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
                     )
                 else:
                     pass
+        return model, history
 
 
 def train_epoch(
