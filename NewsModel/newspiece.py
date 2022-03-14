@@ -49,7 +49,7 @@ class NewspieaceMain(
             )
         # 이 부분 주의. output값이 어디로 가는가에 대한 고려 필요.
         preprocessed_data.to_csv(
-            self.news_path, +"/new_inference.csv", index=False
+            self.output_path, +"/new_inference.csv", index=False
         )
         return preprocessed_data
 
@@ -79,6 +79,8 @@ class NewspieaceMain(
             is_quantization,
         )
 
+        # mlflow를 여기에 넣어놓으면 응집도(쓸데업싱 의존성이 생김)가 생김.
+
 
 # 시험용
 if __name__ == "__main__":
@@ -90,10 +92,13 @@ if __name__ == "__main__":
         random_seed=42,
         is_quantization=True,
     )
-    print(data)
-"""
+    print(data)  # 이 부분에서 mlflow 모델을 적용해서 mlflow로 정보를 갈 수 있게 해야
+    ## newspiece, mlflow를
+    # mlflow class를 별도로 사용할 수 있게 해야함. 결과를 어떻게 가져오던 상관 없이 결과를 가져오게 하는것.
+    # 완전 독립적인 객체가 되게- 일반화가 되어 일반적으로 범용적으로 사용할 수 있게 할 수 있어야 한다.
+    # 이상적인 객체지향적 프로그래밍, 모듈화의 구현.
+
 if __name__ == "__main__":
     NewspieaceMain = NewspieaceMain()
-    data = NewspieaceMain.run_modelinference("google/mobilebert-uncased")
+    data = NewspieaceMain.run_modelinference(model_dic["mobilebert"])
     print(data)
-"""
