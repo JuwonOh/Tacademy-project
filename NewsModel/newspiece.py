@@ -8,7 +8,11 @@ from utils import model_dic
 
 
 class NewspieaceMain(
-    NewspieacePreprocess, NewspieceModeling, DataIOSteam, inference_class
+    NewspieacePreprocess,
+    NewspieceModeling,
+    DataIOSteam,
+    inference_class,
+    PathConfig,
 ):
     def __init__(self):
         """
@@ -16,14 +20,12 @@ class NewspieaceMain(
                        통해 전처리한 data를 반환합니다.
         """
         NewspieacePreprocess.__init__(self)
-        PathConfig.__init__(self)
         NewspieceModeling.__init__(self)
+        PathConfig.__init__(self)
         DataIOSteam.__init__(self)
         inference_class.__init__(self)
 
-    def run_modelinference(
-        self, PRE_TRAINED_MODEL_NAME="google/mobilebert-uncased"
-    ):
+    def run_modelinference(self, PRE_TRAINED_MODEL_NAME, model_path):
         """
         # Description: json으로 불러온 데이터를 전처리하고, 전처리된 데이터를 특정한 모델을 선택하여 inference한다.
         -------------
@@ -45,7 +47,9 @@ class NewspieaceMain(
                 preprocessed_data["class_prob"][i],
                 preprocessed_data["pred"][i],
             ) = self.inference_sentence(
-                preprocessed_data["input_text"][i], PRE_TRAINED_MODEL_NAME
+                preprocessed_data["input_text"][i],
+                PRE_TRAINED_MODEL_NAME,
+                model_path,
             )
         # 이 부분 주의. output값이 어디로 가는가에 대한 고려 필요.
         preprocessed_data.to_csv(
@@ -69,7 +73,8 @@ class NewspieaceMain(
         # Return
         : torch scrip 모델 파일이 지정된 경로로 save된다.
         """
-        self.run_bert(
+        print(pretrained_model_name)
+        model, metric = self.run_bert(
             pretrained_model_name,
             batch_size,
             epoch,
@@ -78,25 +83,8 @@ class NewspieaceMain(
             self.labeled_path,
             is_quantization,
         )
+        return model, metric
 
-        # mlflow를 여기에 넣어놓으면 응집도(쓸데업싱 의존성이 생김)가 생김.
-
-
-# 시험용
-if __name__ == "__main__":
-    NewspieaceMain = NewspieaceMain()
-    data = NewspieaceMain.run_modeltrain(
-        model_dic["mobilebert"],
-        batch_size=2,
-        epoch=1,
-        random_seed=42,
-        is_quantization=True,
-    )
-    print(data)  # 이 부분에서 mlflow 모델을 적용해서 mlflow로 정보를 갈 수 있게 해야
-    ## newspiece, mlflow를
-    # mlflow class를 별도로 사용할 수 있게 해야함. 결과를 어떻게 가져오던 상관 없이 결과를 가져오게 하는것.
-    # 완전 독립적인 객체가 되게- 일반화가 되어 일반적으로 범용적으로 사용할 수 있게 할 수 있어야 한다.
-    # 이상적인 객체지향적 프로그래밍, 모듈화의 구현.
 
 if __name__ == "__main__":
     NewspieaceMain = NewspieaceMain()

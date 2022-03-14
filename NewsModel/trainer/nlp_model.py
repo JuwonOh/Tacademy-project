@@ -5,7 +5,6 @@ import warnings
 from ast import Yield
 from collections import defaultdict
 
-import mlflow.pytorch
 import numpy as np
 import pandas as pd
 import torch
@@ -25,6 +24,17 @@ from transformers import (
 
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
+
+
+def save_checkpoint(epoch, model, optimizer, filename, val_acc, val_loss):
+    state = {
+        "Epoch": epoch,
+        "State_dict": model.state_dict(),
+        "optimizer": optimizer.state_dict(),
+        "val_acc": val_acc,
+        "val_loss": val_loss,
+    }
+    torch.save(state, filename)
 
 
 class NewspieceModeling(PathConfig, SentimentClassifier):
@@ -144,20 +154,24 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
                 f"Epoch [{epoch + 1}/{EPOCHS}] Train loss: {train_loss} acc: {train_acc} | Val loss: {val_loss} acc: {val_acc}"
             )
 
-            print()
             history["train_acc"].append(train_acc)
             history["train_loss"].append(train_loss)
             history["val_acc"].append(val_acc)
             history["val_loss"].append(val_loss)
 
+            file_path = self.model_path + "/{}.pt".format(
+                pretrained_model_name.split("/")[-1]
+            )
+
             if val_acc > best_accuracy:
+                # save_checkpoint(epoch, model, optimizer,
+                #                file_path, val_acc, val_loss)
                 torch.save(
                     model.state_dict(),
                     self.model_path
                     + "/{}.pt".format(pretrained_model_name.split("/")[-1]),
-                )  # model path
+                )
                 best_accuracy = val_acc
-                yield best_accuracy, epoch  # return metric change
 
                 if is_quantization:
                     quantized_model = torch.quantization.quantize_dynamic(
@@ -172,7 +186,7 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
                     )
                 else:
                     pass
-        return model, history
+        return model, best_accuracy.item()
 
 
 def train_epoch(
@@ -203,7 +217,8 @@ def train_epoch(
     Return: train_accuracy, train_loss
     ---------
     """
-    model = model.train()
+    print(device)
+    model = model.train().to(device)
     losses = []
     correct_predictions = 0
     for d in data_loader:
@@ -241,7 +256,7 @@ def eval_model(model, data_loader, loss_fn, device, n_examples):
     Return: eval_accuracy, eval_loss
     ---------
     """
-    model = model.eval()
+    model = model.eval().to(device)
     losses = []
     correct_predictions = 0
     with torch.no_grad():

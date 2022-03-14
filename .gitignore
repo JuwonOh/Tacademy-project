@@ -1,5 +1,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+mlruns/
+saved_model/
+
 *.py[cod]
 *$py.class
 
