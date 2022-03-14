@@ -2,7 +2,7 @@ import time
 import random
 
 from celery import Celery
-from API.predict_module import NLPpredict
+from worker.predict import NLPpredict
 # import cel_predict
 
 app = Celery('my_tasks',

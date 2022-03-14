@@ -6,13 +6,13 @@ import os, re
 from utils import *
 from schema import *
 from typing import List, Dict
-from predict_module import *
+from worker.predict import *
 from pydantic import BaseModel
 import pickle, numpy as np
 import pandas as pd
 from google.cloud import storage
 # from router import local, gcp
-from router import gcp, local, fib, celery
+from router import celery
 from fastapi.middleware.cors import CORSMiddleware
 
 
