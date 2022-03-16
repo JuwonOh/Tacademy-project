@@ -18,12 +18,12 @@ if __name__ == "__main__":
     argument_parser.add_argument(
         "--batch_size",
         type=int,
-        default=2,
+        default=4,
     )
     argument_parser.add_argument(
         "--epoch",
         type=int,
-        default=2,
+        default=150,
     )
     argument_parser.add_argument(
         "--is_quantization",
@@ -32,8 +32,8 @@ if __name__ == "__main__":
     )
     argument_parser.add_argument(
         "--experiment_name",
-        type=int,
-        default="test_experiment",
+        type=str,
+        default="Newspiece_mobilebert",
     )
 
     args = argument_parser.parse_args()
@@ -41,12 +41,13 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     epoch = args.epoch
     is_quantization = args.is_quantization
+    experiment_name = args.experiment_name
 
-    tracking_server_uri = "http://127.0.0.1:5000"
+    tracking_server_uri = "http://34.64.184.112:5000"
     mlflow.set_tracking_uri(tracking_server_uri)
 
     print(mlflow.get_tracking_uri())
-    mlflow.set_experiment(args.experiment_name)
+    mlflow.set_experiment(experiment_name)
 
     run_name = PRE_TRAINED_MODEL_NAME
 
@@ -62,19 +63,9 @@ if __name__ == "__main__":
         is_quantization,
     )
     with mlflow.start_run() as run:
-        mlflow.pytorch.log_model(model, "model")
+        mlflow.pytorch.log_model(model, run_name)
         mlflow.log_params(vars(args))
         mlflow.log_metric("val_acc", metric)
         mlflow.set_tags(tags)
 
     mlflow.end_run()
-
-    print("run_id: {}".format(run.info.run_id))
-    for artifact_path in ["model/data", "scripted_model/data"]:
-        artifacts = [
-            f.path
-            for f in MlflowClient().list_artifacts(
-                run.info.run_id, artifact_path
-            )
-        ]
-        print("artifacts: {}".format(artifacts))

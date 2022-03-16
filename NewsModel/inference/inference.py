@@ -5,9 +5,12 @@ import re
 import pandas as pd
 import torch
 from config import PathConfig
+from mlflow.tracking import MlflowClient
 from model.model import SentimentClassifier
 from torch import nn
 from transformers import AutoModel, AutoTokenizer
+
+import mlflow
 
 
 def inference(input_text, model, PRE_TRAINED_MODEL_NAME):
@@ -57,15 +60,26 @@ class inference_class(PathConfig):
     # parameter로 어떤 모델을 사용할지 지정할 수 있게 해야한다.
 
     def inference_sentence(
-        self, input_text: str, PRE_TRAINED_MODEL_NAME, model_path
+        self, input_text: str, PRE_TRAINED_MODEL_NAME, experiment_name
     ):
+        tracking_server_uri = "http://34.64.184.112:5000/"
+        mlflow.set_tracking_uri(tracking_server_uri)
+        client = MlflowClient()
+        mlflow.set_experiment(experiment_name)
 
-        model = SentimentClassifier(PRE_TRAINED_MODEL_NAME, 2)
-        model.load_state_dict(
-            # 모델 위치 변경 필요.
-            torch.load(model_path, map_location="cpu"),  # model_server
-            strict=False,
+        model_uri = client.search_runs(
+            experiment_ids=[
+                client.get_experiment_by_name(
+                    PRE_TRAINED_MODEL_NAME
+                ).experiment_id
+            ],
+            order_by=["metrics.val_acc DESC"],
         )
+        # 이 부분에서 수정 필요. -> gcp instance에 있는 모델을 어떻게 불러올 수 있는가에 대한 경로를 알아야 한다.
+        model = mlflow.pytorch.load_state_dict(
+            "runs:{}".format(model_uri[0].info.artifact_uri)
+        )
+
         model = model.to("cpu")
         class_prob, pred = inference(input_text, model, PRE_TRAINED_MODEL_NAME)
         return (

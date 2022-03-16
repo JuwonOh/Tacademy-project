@@ -25,7 +25,9 @@ class NewspieaceMain(
         DataIOSteam.__init__(self)
         inference_class.__init__(self)
 
-    def run_modelinference(self, PRE_TRAINED_MODEL_NAME, model_path):
+        # 전체 모듈들을 생성자에서 main을 만들때 내무 instance로 객체를
+
+    def run_modelinference(self, PRE_TRAINED_MODEL_NAME, experiment_name):
         """
         # Description: json으로 불러온 데이터를 전처리하고, 전처리된 데이터를 특정한 모델을 선택하여 inference한다.
         -------------
@@ -49,7 +51,7 @@ class NewspieaceMain(
             ) = self.inference_sentence(
                 preprocessed_data["input_text"][i],
                 PRE_TRAINED_MODEL_NAME,
-                model_path,
+                experiment_name,
             )
         # 이 부분 주의. output값이 어디로 가는가에 대한 고려 필요.
         preprocessed_data.to_csv(

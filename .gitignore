@@ -2,6 +2,8 @@
 __pycache__/
 mlruns/
 saved_model/
+labeled_data/
+news_json/
 
 *.py[cod]
 *$py.class

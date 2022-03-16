@@ -1,21 +1,24 @@
-import mlflow
-import pandas as pd
-import os, re
-import numpy as np
+import os
+import re
 
+import numpy as np
+import pandas as pd
 import torch
+from mlflow.tracking import MlflowClient
 from torch import nn
 from transformers import MobileBertModel, MobileBertTokenizer
 
+import mlflow
+
+
 class Predict:
-    
     def __init__(self, model: str):
         """
         클래스 객체 생성시 모델의 주소 반환
         :params model: 실행시킬 모델의 uuid
-        :return: 
+        :return:
         """
-        self.logged_model = 'runs:/'+ model +'/ml_model'
+        self.logged_model = "runs:/" + model + "/ml_model"
 
     def loaded_model(self, data):
         """
@@ -23,33 +26,16 @@ class Predict:
         :params data: 예측할 데이터
         :return(return type): 예측값(리스트)
         """
-        return mlflow.pyfunc.load_model(
-            self.logged_model
-        ).predict(pd.DataFrame(data))
-
-
-class SentimentClassifier(nn.Module):
-    """
-    모델 준비코드 (토치 스크립트 파일을 받아들이기 전에 해야하는 전초작업)
-    """
-    def __init__(self, n_classes):
-        super(SentimentClassifier, self).__init__()
-        self.bert = MobileBertModel.from_pretrained(
-            "google/mobilebert-uncased", return_dict=False
+        return mlflow.pyfunc.load_model(self.logged_model).predict(
+            pd.DataFrame(data)
         )
-        self.drop = nn.Dropout(p=0.3)
-        self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
-
-    def forward(self, input_ids, attention_mask):
-        _, pooled_output = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-        output = self.drop(pooled_output)
-        return self.out(output)
 
 
 class NLPpredict:
     """
     인풋데이터를 분류해주는 코드
     """
+
     def inference(self, input_text, model, PRE_TRAINED_MODEL_NAME):
         """
         Description: 특정 문장이 들어오면 input text를 embedding하고, inference 해주는 모듈
@@ -92,21 +78,36 @@ class NLPpredict:
     # def __init__(self, model: str):
     #    self.logged_model = "runs:/" + model + "/ml_model"
 
-    def loaded_model(self, input_text: str):
-        """
-        준비한 토치 스크립트와 SentimentClassfier 클래스를 통하여 준비된 레이어를 가지고 분류하는 함수
-        : params input_text: 예측하려고 하는 인풋 데이터
-        : return(return type): prob, pred(List, int)
-        """
-        PRE_TRAINED_MODEL_NAME = "google/mobilebert-uncased"
-        model = SentimentClassifier(2)
-        model.load_state_dict(
-            torch.load("mobilebert.pt", map_location="cpu"),
-            strict=False,
+    def inference_sentence(
+        self, input_text: str, PRE_TRAINED_MODEL_NAME, experiment_name
+    ):
+        tracking_server_uri = "http://34.64.184.112:5000/"
+        mlflow.set_tracking_uri(tracking_server_uri)
+        client = MlflowClient()
+        mlflow.set_experiment(experiment_name)
+
+        model_uri = client.search_runs(
+            experiment_ids=[
+                client.get_experiment_by_name(
+                    PRE_TRAINED_MODEL_NAME
+                ).experiment_id
+            ],
+            order_by=["metrics.val_acc DESC"],
         )
+        # 이 부분에서 수정 필요. -> gcp instance에 있는 모델을 어떻게 불러올 수 있는가에 대한 경로를 알아야 한다.
+        model = mlflow.pytorch.load_state_dict(
+            "runs:{}".format(model_uri[0].info.artifact_uri)
+        )
+
         model = model.to("cpu")
-        class_prob, pred = self.inference(input_text, model, PRE_TRAINED_MODEL_NAME)
-        return class_prob.detach().cpu().numpy().tolist()[0], pred.detach().cpu().numpy().tolist()[0] 
+        class_prob, pred = self.inference(
+            input_text, model, PRE_TRAINED_MODEL_NAME
+        )
+        return (
+            class_prob.detach().cpu().numpy().tolist()[0],
+            pred.detach().cpu().numpy().tolist()[0],
+        )
+
 
 if __name__ == "__main__":
     # a = Predict("330ded0fb7ba462a881357ab456591f5")
@@ -118,17 +119,24 @@ if __name__ == "__main__":
         # input_text = "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender."
         class_prob, pred = a.loaded_model(input_text)
         return (class_prob, pred)
-    
+
     from line_profiler import LineProfiler
 
     line_profiler = LineProfiler()
     # line_profiler.add_function(NLPpredict().inference)
     # line_profiler.add_function(NLPpredict().loaded_model)
-    print(predicting("President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender."))
+    print(
+        predicting(
+            "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender."
+        )
+    )
     a = ()
 
-    lp_wrapper = line_profiler(predicting("President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender."))
+    lp_wrapper = line_profiler(
+        predicting(
+            "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender."
+        )
+    )
     lp_wrapper
 
     line_profiler.print_stats()
-    
