@@ -1,5 +1,10 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+mlruns/
+saved_model/
+labeled_data/
+news_json/
+
 *.py[cod]
 *$py.class
 
