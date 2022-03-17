@@ -30,8 +30,9 @@ class ModelInput():
         """
         return {"Sex": self.sex, "Age_band": self.age_band, "Pclass": self.pclass}
 
-class Fib(BaseModel):
-    fibNumber: int
+class NLPText(BaseModel):
+    input_text: str
+
 # if __name__ == "__main__":
 #     # a = Data({"Sex":[1], "Age_band":[1], "Pclass":[1]})
 #     a = Data(Sex=[1],Age_band=[1],Pclass=[1])
