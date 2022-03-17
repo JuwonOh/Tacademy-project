@@ -1,17 +1,21 @@
 from fastapi import APIRouter
-from celery import Celery
-from worker.predict import NLPpredict
-import worker.celery_predict
 from schema import *
+from worker.worker import nlp_working
 
-router = APIRouter(prefix='/api_with_celery')
+router = APIRouter(prefix="/api_with_celery")
 
-@router.get('/')
+
+@router.get("/")
 def test():
-    return 'API is running'
+    return "API is running"
 
-@router.get('/predict')
-def predict(input_text: NLPText):
-    result = celery_predict.nlp_working.delay(input_text)
+
+@router.post("/predict")
+def predict(input_text):
+
+    print(f"Request body: {input_text}")
+    result = nlp_working.delay(input_text.input_text)
     value = result.get()
+
+    print(f"Result: {value}")
     return value

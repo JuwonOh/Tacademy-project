@@ -1,13 +1,15 @@
-import time
 import random
+import time
 
 from celery import Celery
 from worker.predict import NLPpredict
+
 # import cel_predict
 
-app = Celery('my_tasks',
-              broker='amqp://guest:guest@localhost:5672//',
-              backend="rpc://")
+app = Celery(
+    "my_tasks", broker="amqp://guest:guest@localhost:5672//", backend="rpc://"
+)
+
 
 # @app.task
 # def working(id=1):
