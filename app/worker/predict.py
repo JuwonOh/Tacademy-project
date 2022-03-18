@@ -117,20 +117,26 @@ if __name__ == "__main__":
             class_prob, pred = inference_sentence(
                 input_text, PRE_TRAINED_MODEL_NAME, model_name
             )
-            relation_dict = {"0": "나쁨", "1": "좋음"}
-            relation = pred.map(relation_dict)
-            print(
+            relation_dict = {"0": "나쁘", "1": "좋음"}
+            relation = relation_dict[str(pred)]
+            answer = (
                 "이 문장은 {}사이의 관계에 대한 문장입니다. 이 문장에서는 {}의 관계가 {}다고 예측합니다.".format(
                     related_nation, related_nation, relation
                 )
             )
+            print(answer)
+
         else:
-            print("이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요.")
-        return (class_prob, pred)
+            answer = (
+                "이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요."
+            )
+            print(answer)
+            class_prob, pred = None, None
+        return (class_prob, pred, answer)
 
-    from line_profiler import LineProfiler
+    # from line_profiler import LineProfiler
 
-    line_profiler = LineProfiler()
+    # line_profiler = LineProfiler()
     # line_profiler.add_function(NLPpredict().inference)
     # line_profiler.add_function(NLPpredict().loaded_model)
     print(
@@ -142,7 +148,9 @@ if __name__ == "__main__":
 
     lp_wrapper = line_profiler(
         predicting(
-            "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender."
+            "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender.",
+            "google/mobilebert-uncased",
+            "mobilebert_tmp",
         )
     )
     lp_wrapper
