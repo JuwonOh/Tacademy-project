@@ -129,10 +129,8 @@ async def root():
 
 @app.get("/example")
 async def show_example(input_text: str):
-    a = NLPpredict()
-    class_prob, pred = a.loaded_model(input_text)
-    # print(class_prob, pred)
-    return class_prob, pred
+
+    return input_text
 
 if __name__ == "__main__":
     uvicorn.run(app, host='127.0.0.1', port=8003)

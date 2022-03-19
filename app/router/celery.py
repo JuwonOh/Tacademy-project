@@ -11,11 +11,13 @@ def test():
 
 
 @router.post("/predict")
-def predict(input_text):
+def predict(information: NLPText):
 
-    print(f"Request body: {input_text}")
-    result = nlp_working.delay(input_text.input_text)
+    print(f"Request body: ongoing")
+    result = nlp_working.delay(information.dict())
+    print("result complete")
     value = result.get()
+    print("value complete")
 
     print(f"Result: {value}")
     return value

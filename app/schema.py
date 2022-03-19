@@ -29,9 +29,12 @@ class ModelInput():
         :return(return type): 인풋 데이터(Dict)
         """
         return {"Sex": self.sex, "Age_band": self.age_band, "Pclass": self.pclass}
-
+        
 class NLPText(BaseModel):
     input_text: str
+    pretrained_model_name: str = "google/mobilebert-uncased"
+    model_name: str
+
 
 # if __name__ == "__main__":
 #     # a = Data({"Sex":[1], "Age_band":[1], "Pclass":[1]})
