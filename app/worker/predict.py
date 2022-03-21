@@ -106,6 +106,7 @@ def predicting(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
                 related_nation, related_nation, relation
             )
         )
+
     else:
         answer = (
             "이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요."
@@ -113,6 +114,7 @@ def predicting(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
         print(answer)
         class_prob, pred = None, None
     return (class_prob, pred, answer)
+
 
 
 if __name__ == "__main__":
