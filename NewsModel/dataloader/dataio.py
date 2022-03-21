@@ -6,7 +6,7 @@ from utils import notuse_category, use_category
 
 
 class DataIOSteam:
-    def _get_jsondata(self, path):
+    def _get_jsondata(path):
         """
         # Description: 주어진 path에 위치한 json data를 반환합니다.
 
@@ -63,7 +63,7 @@ class DataIOSteam:
 
         return json_data
 
-    def _get_xlsxdata(self, path):
+    def _get_xlsxdata(path):
         """
         # Description: 주어진 path에 위치한 train.csv data를 반환합니다.
         -------------

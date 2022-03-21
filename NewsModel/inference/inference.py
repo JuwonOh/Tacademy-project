@@ -41,19 +41,15 @@ def embedding(input_text, PRE_TRAINED_MODEL_NAME):
     return input_ids, attention_mask
 
 
-def inference(model_name, input_ids, attention_mask):
+def load_model(model_name):
     """
     Description: mlflow에 올라가 있는 모델과 embedding된 결과를 사용해서
     ---------
     Arguments:
-    input_text: str
-        사용자가 넣을 문장 정보.
-    PRE_TRAINED_MODEL_NAME: model name
-        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름.
+        model_name: model에 들어갈 model 이름.
     ---------
     Return:
-        input_ids
-        attention_mask
+        model: mlflow에서 production 단계로 올라가 있는 model
     ---------
     """
     tracking_server_uri = "http://34.64.184.112:5000/"
@@ -70,6 +66,24 @@ def inference(model_name, input_ids, attention_mask):
     )
     model = mlflow.pytorch.load_model(model_uri)
 
+    return model
+
+
+def inference(model, input_ids, attention_mask):
+    """
+    Description: mlflow에 올라가 있는 모델과 embedding된 결과를 사용해서 모델을 inference한다.
+    ---------
+    Arguments:
+    input_text: str
+        사용자가 넣을 문장 정보.
+    PRE_TRAINED_MODEL_NAME: model name
+        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름.
+    ---------
+    Return:
+        input_ids
+        attention_mask
+    ---------
+    """
     logits = model(input_ids, attention_mask)
     softmax_prob = torch.nn.functional.softmax(logits, dim=1)
     _, prediction = torch.max(softmax_prob, dim=1)
@@ -79,7 +93,8 @@ def inference(model_name, input_ids, attention_mask):
 
 def inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
     input_ids, attention_mask = embedding(input_text, PRE_TRAINED_MODEL_NAME)
-    class_prob, pred = inference(model_name, input_ids, attention_mask)
+    model = load_model(model_name)
+    class_prob, pred = inference(model, input_ids, attention_mask)
     return (
         class_prob.detach().cpu().numpy()[0],
         pred.detach().cpu().numpy()[0],
