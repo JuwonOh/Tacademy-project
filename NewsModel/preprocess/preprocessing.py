@@ -12,14 +12,9 @@ from preprocess.textrank import sort_sentence_importance
 from progressbar import ProgressBar
 from tqdm import tqdm
 
-# 전처리를 구성하는 class
-
 
 class NewspieacePreprocess:
-    def __init__(self):
-        pass
-
-    def run_preprocessing(self, data):  # data = news.json or news.csv
+    def run_preprocessing(data):  # data = news.json or news.csv
         """
         # Description: 주어진 data의 특정 컬럼의 이름을 전처리, 결측치 imputation, feature를 이용한 새로운 변수정의, labeling, 필요없는 컬럼삭제 등을
                        통해 전처리한 data를 반환합니다.
@@ -71,8 +66,8 @@ def quasiNER_extractor3(dataframe, nameof_articlebody_column):
     ]
     quasinerdf_output_list = []
     dataframe["doc_id"] = ""
-    for doc_id in range(
-        len(dataframe["lowercase_" + nameof_articlebody_column])
+    for doc_id in ProgressBar(
+        range(len(dataframe["lowercase_" + nameof_articlebody_column]))
     ):
         dataframe["doc_id"][doc_id] = doc_id
         input_text = dataframe["lowercase_" + nameof_articlebody_column][
