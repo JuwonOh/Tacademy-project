@@ -1,8 +1,17 @@
 import os
 import re
+import sys
 
-from NewsModel.inference import inference_sentence
-from NewsModel.preprocess import morethan_two_countries
+from countryset import morethan_two_countries
+from inference import inference_sentence
+
+sys.path.insert(
+    0, "/home/sktechxtacademy/Tacademy-project/NewsModel/preprocess"
+)
+print(sys.path)
+sys.path.insert(
+    0, "/home/sktechxtacademy/Tacademy-project/NewsModel/inference"
+)
 
 
 def predicting(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):

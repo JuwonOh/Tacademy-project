@@ -1,7 +1,7 @@
 import pandas as pd
 from config import PathConfig
 from dataloader import DataIOSteam
-from inference import inference_sentence
+from inference import inference_df
 from preprocess import NewspieacePreprocess
 from trainer import NewspieceModeling
 from utils import model_dic
@@ -28,24 +28,23 @@ class NewspieaceMain(PathConfig):
         # Return
         : inference에 사용할 데이터
         """
-        json_data = DataIOSteam._get_jsondata(self.news_path)
+        if self.news_path.endswith(".json"):
+            input_data = DataIOSteam._get_jsondata(self.news_path)
+        else:
+            input_data = pd.read_csv(self.news_path)
 
-        preprocessed_data = NewspieacePreprocess.run_preprocessing(json_data)
+        preprocessed_data = NewspieacePreprocess.run_preprocessing(input_data)
 
-        for i in range(len(preprocessed_data)):
-            (
-                preprocessed_data["class_prob"][i],
-                preprocessed_data["pred"][i],
-            ) = inference_sentence(
-                preprocessed_data["input_text"][i],
-                PRE_TRAINED_MODEL_NAME,
-                model_name,
-            )
+        inferenced_data = inference_df(
+            preprocessed_data,
+            PRE_TRAINED_MODEL_NAME,
+            model_name,
+        )
         # 이 부분 주의. output값이 어디로 가는가에 대한 고려 필요.
-        preprocessed_data.to_csv(
+        inferenced_data.to_csv(
             self.output_path, +"/new_inference.csv", index=False
         )
-        return preprocessed_data
+        return inferenced_data
 
     def run_modeltrain(
         self,

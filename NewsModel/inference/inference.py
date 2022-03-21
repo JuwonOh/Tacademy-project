@@ -99,3 +99,18 @@ def inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
         class_prob.detach().cpu().numpy()[0],
         pred.detach().cpu().numpy()[0],
     )
+
+
+def inference_df(preprocessed_data, PRE_TRAINED_MODEL_NAME, model_name):
+    preprocessed_data["class_prob"] = ""
+    preprocessed_data["pred"] = ""
+    for i in range(len(preprocessed_data)):
+        (
+            preprocessed_data["class_prob"][i],
+            preprocessed_data["pred"][i],
+        ) = inference_sentence(
+            preprocessed_data["input_text"][i],
+            PRE_TRAINED_MODEL_NAME,
+            model_name,
+        )
+    return preprocessed_data

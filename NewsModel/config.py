@@ -15,9 +15,9 @@ class PathConfig:
         """
         self.project_path = os.getcwd()
         # json_server
-        self.news_path = f"{self.project_path}/data/news_json"
+        self.news_path = f"{self.project_path}/input_data/news_json"
         # labeled_server
-        self.labeled_path = f"{self.project_path}/data/labeled_data"
+        self.labeled_path = f"{self.project_path}/input_data/labeled_data"
         self.model_path = f"{self.project_path}/saved_model"
         self.output_path = f"{self.project_path}/output"
 

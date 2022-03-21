@@ -98,6 +98,4 @@ def quasiNER_extractor3(dataframe, nameof_articlebody_column):
     ].reset_index(drop=True)
     del quasinerdf_output_df["isvalid"]
     all_df = pd.merge(dataframe, quasinerdf_output_df)
-    all_df["class_prob"] = ""
-    all_df["pred"] = ""
     return all_df
