@@ -11,19 +11,6 @@ from transformers import AutoTokenizer
 import mlflow
 
 
-# juwon: Predict의 존재 이유를 모르겠음. 개인적으로는 삭제하는게 맞다고 생각함.
-# class Predict:
-#     def predict(input_text, PRE_TRAINED_MODEL_NAME, model_name):
-#         """
-#         모델을 통하여 값 예측
-#         :params data: 예측할 데이터
-#         :return(return type): 예측값(리스트)
-#         """
-#         return inference_sentence(
-#             input_text, PRE_TRAINED_MODEL_NAME, model_name
-#         )
-
-
 def embedding(input_text, PRE_TRAINED_MODEL_NAME):
     """
     Description: input text가 들어오면 모델에 inference할 text를 사용할 수 있게, input text를 embedding해준다.
@@ -104,6 +91,7 @@ def inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
         pred.detach().cpu().numpy()[0],
     )
 
+
 def predicting(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
     # input_text = "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender."
     valid, related_nation = morethan_two_countries(input_text)
@@ -118,7 +106,6 @@ def predicting(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
                 related_nation, related_nation, relation
             )
         )
-        print(answer)
 
     else:
         answer = (
@@ -128,21 +115,10 @@ def predicting(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
         class_prob, pred = None, None
     return {'class_prob':class_prob.tolist(), 'pred':int(pred), 'answer':answer}
 
+
+
 if __name__ == "__main__":
-    # a = Predict("330ded0fb7ba462a881357ab456591f5")
-    # data = {"Sex": [1, 0, 1, 1], "Age_band": [1, 2, 1, 1], "Pclass": [1, 3, 3, 3]}
-    # print(a.loaded_model(data))
-
-
-    # from line_profiler import LineProfiler
-
-    # line_profiler = LineProfiler()
-    # line_profiler.add_function(NLPpredict().inference)
-    # line_profiler.add_function(NLPpredict().loaded_model)
-    print(
-        predicting(
-            "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender.",
-            "google/mobilebert-uncased",
-            "mobilebert_tmp",
-        )
-    )
+    predicting(
+        "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender.",
+        "google/mobilebert-uncased",
+        "mobilebert_tmp")

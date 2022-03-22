@@ -42,7 +42,6 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
         PathConfig.__init__(self)
 
     def run_bert(
-        self,
         pretrained_model_name,
         batch_size,
         epoch,
