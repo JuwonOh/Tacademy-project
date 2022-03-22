@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import torch
 from mlflow.tracking import MlflowClient
-from preprocessing import morethan_two_countries
+from worker.preprocessing import morethan_two_countries
 from transformers import AutoTokenizer
 
 import mlflow
@@ -126,7 +126,7 @@ def predicting(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
         )
         print(answer)
         class_prob, pred = None, None
-    return (class_prob, pred, answer)
+    return {'class_prob':class_prob.tolist(), 'pred':int(pred), 'answer':answer}
 
 if __name__ == "__main__":
     # a = Predict("330ded0fb7ba462a881357ab456591f5")

@@ -9,8 +9,8 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 import torch
-import mlflow.tracking import MlflowClient
-from preprocessing import morethan_two_countries
+from mlflow.tracking import MlflowClient
+from worker.preprocessing import morethan_two_countries
 from transformers import AutoTokenizer
 
 app = Celery(
@@ -25,19 +25,22 @@ class SimplePredict(Task):
         super().__init__()
         self.model = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self): #, *args):
         if  not self.model:
+            model_name = "mobilebert_ver1"
             tracking_server_uri = "http://34.64.184.112:5000/"
             mlflow.set_tracking_uri(tracking_server_uri)
             client = MlflowClient()
-            filter_string = "name = '{}'".format(self.model_name)
+            filter_string = "name = '{}'".format( #self.model_name[0])
+                    model_name)
             result = client.search_model_versions(filter_string)
 
             for res in result:
                 if res.current_stage == "Production":
                     deploy_version = res.version
             model_uri = client.get_model_version_download_uri(
-                            model_name, deploy_version
+                           # self.model_name[0], deploy_version
+                           model_name, deploy_version
                         )
             self.model = mlflow.pytorch.load_model(model_uri)
 
@@ -68,21 +71,25 @@ def nlp_working(text: Dict):
             ignore_result = False,
             bind = True,
             base = SimplePredict,
-            model_name = mobilebert_ver1
+            # model_name = ("mobilebert_ver1")
         )
 def prepared_nlp_working(text: Dict):
-    input_ids, attention_mask = embedding(text['input_text'])
-    logits = model(input_ids, attention_mask)
+    input_ids, attention_mask = embedding(text['input_text'], text['pretrained_model_name'])
+    logits = self.model(input_ids, attention_mask)
     
     # softmax_prob = torch.nn.functional.softmax(logits, dim=1)
-    class_prob = torch.nn.functional.softmax(logits, dim=1)
-    class_prob = class_prob.detach().cpu().numpy()[0]
+    
+    # class_prob = torch.nn.functional.softmax(logits, dim=1)
+    # class_prob = class_prob.detach().cpu().numpy()[0]
+    
+    class_prob = torch.nn.functional.softmax(logits, dim=1).detach().cpu().numpy()[0]
     
     # _, prediction = torch.max(softmax_prob, dim=1)
+    
     _, pred = torch.max(softmax_prob, dim=1)
-    pred = pred.detach().cpu().numpy()[0]
+    pred = pred.detach().cpu().numpy()[0] 
 
-    valid, related_nation = morethan_two_countries(input_text)
+    valid, related_nation = morethan_two_countries(text['input_text'])
     if valid:
         
         relation_dict = {"0": "나쁘", "1": "좋음"}
