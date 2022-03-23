@@ -4,24 +4,32 @@
 - 현 상황에서 주요한 파일은 newspiece.py입니다. 
 - newspiece.py의 NewspieaceMain 클래스의 run_jsoninference는 inference를 담당하며, run_modeltrain은 모델 학습을 당당합니다.
 
+## Usage
+
+
+
 ## Requirements
 * Python >= 3.7
 * PyTorch >= torch==1.8.2+cu111
 * tqdm
-* transformers 4.x
+* transformers >=4.16.2
+* mlflow==1.23.1
+* scipy>=1.8.0
+* nltk
 
 ## Folder Structure
   ```
   newsmodel/
   │
-  ├── main.py - 미완성: newspiece에 있는 함수를 사용해서 mlflow를 사용할 수 있게 해주는 모듈
+  ├── main.py - preprocess 완료된 파일 파일을 만들고, 그걸 통해서 inference와 train을 담당하는 모듈(실행 가능)
   │
-  ├── newspiece.py - preprocess 완료된 파일 파일을 만들고, 그걸 통해서 inference와 train을 담당하는 모듈(실행 가능)
+  ├── model_run.py: 모델 학습과 실험을 mlflow 내부에서 할때 사용하는 모듈
   │
-  ├── inference/ - newspiece의 inference에 사용되는 함수가 들어있는 파일
+  │
+  ├── inference/ - mlflow에 production 상태에 있는 모델을 불러와서 inference하는 모듈
   │       ├──inference.py 
   │
-  ├── trainer/ - 기존에 있는 라벨링된 데이터를 기반으로 model을 train하는 파일
+  ├── trainer/ - 기존에 있는 라벨링된 데이터를 기반으로 model을 train하는 모듈
   │       ├── nlpmodel.py 
   │
   ├── model/ - 사용될 전체 모델들이 class로 들어가 있는 파일(개별 모델별 py파일을 만들어야 하나 고민중.
@@ -43,6 +51,8 @@
   ├── data/pgdata - parameter가 local에서 사용할 수 있는 경우에 local에서 사용할 데이터가 있는 폴더
   │       ├── newsjson: 크롤링된 json 파일들이 들어가는 폴더 
   │       └── labeled data: 라벨링된 파일이 들어가는 폴더
-  ├── model - 학습된 모델이 저장되는 폴더, inference에 사용하는 모듈을 불러오는 폴더
+  ├── saved_model - 학습된 모델이 저장되는 폴더, inference에 사용하는 모듈을 불러오는 폴더
+  │
+  ├── setup.py - package를 설치하는 모듈
  
   ```

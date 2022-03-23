@@ -9,6 +9,7 @@ from preprocessing import morethan_two_countries
 from transformers import AutoTokenizer
 
 import mlflow
+from newsmodel import embedding, inference
 
 
 def embedding(input_text, PRE_TRAINED_MODEL_NAME):
@@ -108,17 +109,15 @@ def predicting(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
         )
 
     else:
-        answer = (
-            "이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요."
-        )
+        answer = "이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요."
         print(answer)
         class_prob, pred = None, None
     return (class_prob, pred, answer)
-
 
 
 if __name__ == "__main__":
     predicting(
         "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender.",
         "google/mobilebert-uncased",
-        "mobilebert_tmp")
+        "mobilebert_tmp",
+    )

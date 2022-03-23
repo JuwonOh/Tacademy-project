@@ -29,7 +29,7 @@ class NewspieaceMain(PathConfig):
         : inference에 사용할 데이터
         """
         if self.news_path.endswith(".json"):
-            input_data = DataIOSteam._get_jsondata(self.news_path)
+            input_data = DataIOSteam.get_jsondata(self.news_path)
         else:
             input_data = pd.read_csv(self.news_path)
 
