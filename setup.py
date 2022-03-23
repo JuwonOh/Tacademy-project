@@ -1,15 +1,14 @@
-import io
-import os
-import sys
+from glob import glob
+from os.path import basename, splitext
 
 from setuptools import find_packages, setup
 
-with open("README.md", "r", encoding="UTF8") as fh:
+with open("./NewsModel/README.md", "r", encoding="UTF8") as fh:
     long_description = fh.read()
 
 setup(
-    name="Newspiece",
-    version="1.4",
+    name="Newsmodel",
+    version="0.1",
     description="Tacademy project의 newsmodel을 학습하고 실험하기 위한 패키지 입니다.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -26,9 +25,12 @@ setup(
         "scipy==1.7.1",
     ],
     packages=find_packages(where="NewsModel"),
-    keywords=["NLP"],
+    package_dir={"": "NewsModel"},
+    keywords=["NLP", "pytorch", "Sentiment analysis"],
+    py_modules=[
+        splitext(basename(path))[0] for path in glob("NewsModel/*.py")
+    ],
     python_requires=">=3.8",
-    package_data={},
     zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3",
