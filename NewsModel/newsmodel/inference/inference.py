@@ -7,18 +7,19 @@ import mlflow
 
 def embedding(input_text, PRE_TRAINED_MODEL_NAME):
     """
-    Description: input text가 들어오면 모델에 inference할 text를 사용할 수 있게, input text를 embedding해준다.
+    input text가 들어오면 모델에 inference할 text를 사용할 수 있게, input text를 embedding해준다.
+
+    Parameters
     ---------
-    Arguments:
     input_text: str
         사용자가 넣을 문장 정보.
-    PRE_TRAINED_MODEL_NAME: model name
+    PRE_TRAINED_MODEL_NAME: str
         tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름.
+
+    Return
     ---------
-    Return:
-        input_ids
-        attention_mask
-    ---------
+    input_ids:
+    attention_mask
     """
     device = "cpu"
 
@@ -41,18 +42,22 @@ def embedding(input_text, PRE_TRAINED_MODEL_NAME):
     return input_ids, attention_mask
 
 
-def load_model(model_name):
+def load_model(model_name, tracking_ip):
     """
-    Description: mlflow에 올라가 있는 모델과 embedding된 결과를 사용해서
+    mlflow에서 production 상태로 되어 있는 모델을 불러오는 함수
+
+    Parameters
     ---------
-    Arguments:
-        model_name: model에 들어갈 model 이름.
+    model_name: str
+        model runs에 들어갈 model 이름.
+
+    Return
     ---------
-    Return:
-        model: mlflow에서 production 단계로 올라가 있는 model
+    model: state dict
+        사전에 학습된 pytorch model
     ---------
     """
-    tracking_server_uri = "http://34.64.184.112:5000/"
+    tracking_server_uri = "{}:5000/".format(tracking_ip)
     mlflow.set_tracking_uri(tracking_server_uri)
     client = MlflowClient()
     filter_string = "name = '{}'".format(model_name)
@@ -71,17 +76,17 @@ def load_model(model_name):
 
 def inference(model, input_ids, attention_mask):
     """
-    Description: mlflow에 올라가 있는 모델과 embedding된 결과를 사용해서 모델을 inference한다.
+    pytorch 모델과 embedding된 문장을 사용해서 모델을 inference한다.
+
+    Parameters
     ---------
-    Arguments:
-    input_text: str
-        사용자가 넣을 문장 정보.
-    PRE_TRAINED_MODEL_NAME: model name
-        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름.
+    model: str
+    input_ids:
+    attention_mask:
     ---------
     Return:
-        input_ids
-        attention_mask
+        softmax_prob
+        prediction
     ---------
     """
     logits = model(input_ids, attention_mask)
@@ -91,9 +96,9 @@ def inference(model, input_ids, attention_mask):
     return softmax_prob, prediction
 
 
-def inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
+def inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name, tracking_ip):
     input_ids, attention_mask = embedding(input_text, PRE_TRAINED_MODEL_NAME)
-    model = load_model(model_name)
+    model = load_model(model_name, tracking_ip)
     class_prob, pred = inference(model, input_ids, attention_mask)
     return (
         class_prob.detach().cpu().numpy()[0],
@@ -101,7 +106,7 @@ def inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
     )
 
 
-def inference_df(preprocessed_data, PRE_TRAINED_MODEL_NAME, model_name):
+def inference_df(preprocessed_data, PRE_TRAINED_MODEL_NAME, model_name, tracking_ip):
     preprocessed_data["class_prob"] = ""
     preprocessed_data["pred"] = ""
     for i in range(len(preprocessed_data)):
@@ -112,5 +117,6 @@ def inference_df(preprocessed_data, PRE_TRAINED_MODEL_NAME, model_name):
             preprocessed_data["input_text"][i],
             PRE_TRAINED_MODEL_NAME,
             model_name,
+            tracking_ip
         )
     return preprocessed_data

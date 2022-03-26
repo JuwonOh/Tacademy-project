@@ -14,7 +14,10 @@ from tqdm import tqdm
 
 
 class NewspieacePreprocess:
-    def run_preprocessing(data):  # data = news.json or news.csv
+    def __init__(self, tag_filter_value: str = "0"):
+        self._tag_filter_value = tag_filter_value
+
+    def run_preprocessing(self, data):  # data = news.json or news.csv
         """
         # Description: 주어진 data의 특정 컬럼의 이름을 전처리, 결측치 imputation, feature를 이용한 새로운 변수정의, labeling, 필요없는 컬럼삭제 등을
                        통해 전처리한 data를 반환합니다.
@@ -33,7 +36,7 @@ class NewspieacePreprocess:
                 ner_df["sententce_ner"][a] = [
                     each
                     for each in model.predict(ner_df["input_text"][a])
-                    if each["tag"] != "O"
+                    if each["tag"] != self._tag_filter_value
                 ]
             except:
                 ner_df["sententce_ner"][a] = ""

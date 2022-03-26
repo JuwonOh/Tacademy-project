@@ -1,21 +1,53 @@
-# newspiece mlflow 
+# nesmodel pakage
 
-- 현재 상황은 기존 model과 mlflow의 틀을 통합한 상황입니다.
-- 현 상황에서 주요한 파일은 newspiece.py입니다. 
-- newspiece.py의 NewspieaceMain 클래스의 run_jsoninference는 inference를 담당하며, run_modeltrain은 모델 학습을 당당합니다.
+## Features
+- 국가간 관계를 학습하고 예측하기 위해 만들어진 패키지입니다.
+- 모델을 학습하고, 학습된 모델을 불러와서 새로운 데이터를 예측합니다.
+
+## Data
+
+- 미국, 중국, 러시아, 일본, 한국, 인도의 9개 언론사와 8개 국가기관의 기사, 문서
+  
+## Requirements
+
+- Dependencies
+  - Python >= 3.8)
+  - mlflow >=1.23.1)
+  - torch >=1.4.2+cu111) 
+  - transformers>=4.16.2
+  - nltk
+- pypi link(https://pypi.org/project/newsmodel/)
 
 ## Usage
 
+### configuration
+
+- main.py를 돌리는 configuration을 만들까 생각중.
+  
+### train
+
+- 장기적으로는 mlflow와 연동된 model_run.py와 연결하려고 함.
+
+```
+import newsmodel 
+from newsmodel.trainer import NewspieceModeling
+modeling = NewspieceModeling()
+modeling.run_bert(pretrained_model_name,batch_size, epoch,random_seed,model_directory,data_directory,is_quantization)
+```
+
+### inference
+
+- app/worker의 predicting을 가져올까 생각중(수현씨와 논의중)
+
+```
+import newsmodel
+from newsmodel.inference import inference_sentence
+
+inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name)
+
+```
 
 
-## Requirements
-* Python >= 3.7
-* PyTorch >= torch==1.8.2+cu111
-* tqdm
-* transformers >=4.16.2
-* mlflow==1.23.1
-* scipy>=1.8.0
-* nltk
 
 ## Folder Structure
   ```
