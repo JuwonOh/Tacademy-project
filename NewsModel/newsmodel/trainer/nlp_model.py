@@ -39,8 +39,7 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
         data_directory,
         is_quantization,
     ):
-        """
-        모델을 학습하는 함수입니다.
+        """기존에 라벨링된 데이터를 불러와서 모델을 학습하는 함수입니다.
 
         Parameters
         -------------
@@ -64,7 +63,7 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
         model : Object
             전체 epoch에서 가장 정확도가 높은 torch model을 반환합니다.
         best_accuracy: numpy
-            train epoch에서 가장 높은 정확도
+            train epoch에서 가장 높은 정확도. mlflow의 model metric으로 사용된다.
         """
         if not os.path.exists(model_directory):
             os.makedirs(model_directory)

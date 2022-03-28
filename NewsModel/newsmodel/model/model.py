@@ -3,8 +3,7 @@ from transformers import AutoModel
 
 
 class SentimentClassifier(nn.Module):
-    """
-    Description: torch의 nn.Module을 사용해서 분류기 클래스를 만든다.
+    """torch의 nn.Module을 사용해서 분류기 클래스의 기본적인 구조가 들어있는 모듈
     ---------
     """
 

@@ -5,7 +5,6 @@ import re
 def add_lowercase_country_keywords(input_keyword_list):
     """
     Description: 국가쌍을 뽑아내는데 필요한 키워드가 담긴 dictionary.
-    너무 길어서 따로 module화 해서 결과값만 받아오는 형식으로 바꾸려 함.
     ---------
     Return: 국가 키워드가 담긴 dictionary.
     ---------
@@ -172,17 +171,17 @@ japan_text.pop(-5)
 
 
 def morethan_two_countries(input_text):
-    """
-    Description: 국가쌍에 해당되는 문장을 뽑아주는 함수
+    """국가쌍에 해당되는 문장을 뽑아주는 함수
 
     Artuments
     ---------
     input_article : str
-        full article
+        특정 국가에 대한 키워드가 잇는지 검색하고자 하는 문장.
 
     return
     ---------
-    Boolean: True, False
+    Boolean:
+        True, False
     """
     list_of_countries = []
     counter = 0

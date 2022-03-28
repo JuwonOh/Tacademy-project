@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 from nltk.tag import pos_tag
 from nltk.tokenize import sent_tokenize, word_tokenize
-from preprocess.countryset import morethan_two_countries
 from scipy.sparse import csr_matrix
 from sklearn.preprocessing import normalize
+
+from .countryset import morethan_two_countries
 
 # textrank는 lovit의 https://lovit.github.io/nlp/2019/04/30/textrank/에서 가져왔습니다.
 
