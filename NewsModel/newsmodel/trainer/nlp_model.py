@@ -26,17 +26,6 @@ warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
 
 
-def save_checkpoint(epoch, model, optimizer, filename, val_acc, val_loss):
-    state = {
-        "Epoch": epoch,
-        "State_dict": model.state_dict(),
-        "optimizer": optimizer.state_dict(),
-        "val_acc": val_acc,
-        "val_loss": val_loss,
-    }
-    torch.save(state, filename)
-
-
 class NewspieceModeling(PathConfig, SentimentClassifier):
     def __init__(self):
         PathConfig.__init__(self)
@@ -50,16 +39,31 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
         data_directory,
         is_quantization,
     ):
-        """
-        # Description: sklearn API를 사용하여 모델을 학습하고, 예측에 사용할 모델과 기록할 지표들을 반환합니다.
+        """기존에 라벨링된 데이터를 불러와서 모델을 학습하는 함수입니다.
+
+        Parameters
         -------------
-        # Parameter
-        - X: train data (feature)
-        - y: train data (label)
-        - n_estimator: The number of trees in the forest (hyper parameter)
+        pretrained_model_name: str
+            사용할 Bert model의 이름.
+        batch_size: int
+            모델에서 사용할 배치 사이즈
+        epoch: int
+            모델이 학습할 횟수
+        random_seed:int
+            사용할 랜덤시드
+        model_directory: str
+            학습시킨 모델이 저장되는 위치
+        data_directory: str
+            학습 데이터가 있는 위치
+        is_quantization: boolean
+            model 양자화 여부를 선택
+
+        Return
         -------------
-        # Return
-        : model object, model information(metric, parameter)
+        model : Object
+            전체 epoch에서 가장 정확도가 높은 torch model을 반환합니다.
+        best_accuracy: numpy
+            train epoch에서 가장 높은 정확도. mlflow의 model metric으로 사용된다.
         """
         if not os.path.exists(model_directory):
             os.makedirs(model_directory)

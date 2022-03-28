@@ -6,24 +6,29 @@ import numpy as np
 import pandas as pd
 from nltk import tokenize
 from nltk.tokenize import sent_tokenize, word_tokenize
-from preprocess.countryset import morethan_two_countries
-from preprocess.ner import sentence_to_nerlist
-from preprocess.textrank import sort_sentence_importance
 from progressbar import ProgressBar
 from tqdm import tqdm
 
+from .countryset import morethan_two_countries
+from .ner import sentence_to_nerlist
+from .textrank import sort_sentence_importance
+
 
 class NewspieacePreprocess:
-    def run_preprocessing(data):  # data = news.json or news.csv
-        """
-        # Description: 주어진 data의 특정 컬럼의 이름을 전처리, 결측치 imputation, feature를 이용한 새로운 변수정의, labeling, 필요없는 컬럼삭제 등을
+    def __init__(self, tag_filter_value: str = "0"):
+        self._tag_filter_value = tag_filter_value
+
+    def run_preprocessing(self, data):  # data = news.json or news.csv
+        """주어진 data의 특정 컬럼의 이름을 전처리, 결측치 imputation, feature를 이용한 새로운 변수정의, labeling, 필요없는 컬럼삭제 등을
                        통해 전처리한 data를 반환합니다.
+        Parameters
         -------------
-        # Parameter
-        - data: train에 사용할 raw data
+        data: train에 사용할 raw data
+
+        Return
         -------------
-        # Return
-        : 전처리 후의 데이터
+        ner_df: pandas dataframe
+            전처리 후의 데이터
         """
         print(data["content"])
         ner_df = quasiNER_extractor3(data, "content")
@@ -33,7 +38,7 @@ class NewspieacePreprocess:
                 ner_df["sententce_ner"][a] = [
                     each
                     for each in model.predict(ner_df["input_text"][a])
-                    if each["tag"] != "O"
+                    if each["tag"] != self._tag_filter_value
                 ]
             except:
                 ner_df["sententce_ner"][a] = ""
@@ -47,11 +52,9 @@ def corpus_to_nerlist(input_corpus):
 
 
 def quasiNER_extractor3(dataframe, nameof_articlebody_column):
-    """
-    Description: 기존에 앞에서 작성한 함수를 연결하여 실행하는 코드이다.
+    """기존에 앞에서 작성한 함수를 연결하여 실행하는 코드이다.
 
-    ---------
-    Arguments
+    Parameters
     ---------
     dataframe: pandas dataframe
         국가간 관계가 들어가 있는 데이터 프레임을 넣는다.
@@ -59,7 +62,7 @@ def quasiNER_extractor3(dataframe, nameof_articlebody_column):
         데이터 프레임의 칼럼 이름을 넣는다.
     ---------
     Return: pandas.dataframe
-    ---------
+        전처리가 전부 완료된 데이터 프레임
     """
     dataframe["lowercase_" + nameof_articlebody_column] = dataframe[
         nameof_articlebody_column

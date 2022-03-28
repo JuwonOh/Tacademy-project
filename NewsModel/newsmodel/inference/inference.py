@@ -6,19 +6,22 @@ import mlflow
 
 
 def embedding(input_text, PRE_TRAINED_MODEL_NAME):
-    """
-    Description: input text가 들어오면 모델에 inference할 text를 사용할 수 있게, input text를 embedding해준다.
+    """input text가 들어오면 모델에 inference할 text를 torch model이 사용할 수 있게, input text를 embedding하는 함수.
+
+    Parameters
     ---------
-    Arguments:
     input_text: str
         사용자가 넣을 문장 정보.
-    PRE_TRAINED_MODEL_NAME: model name
-        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름.
+    PRE_TRAINED_MODEL_NAME: str
+        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름. 사용할 모델과 PRE_TRAINED_MODEL_NAME의 정보가 맞아야 한다.
+        참고: https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
+
+    Return
     ---------
-    Return:
-        input_ids
-        attention_mask
-    ---------
+    input_ids: tensor
+        encoding된 단어들이 숫자로 표현된 결과
+    attention_mask: tensor
+        단어가 있는지의 여부를 표시하는 결과, 문장이 있으면 1, 문자가 없고 padding이 되어 있으면 0으로 표시된다.
     """
     device = "cpu"
 
@@ -41,25 +44,31 @@ def embedding(input_text, PRE_TRAINED_MODEL_NAME):
     return input_ids, attention_mask
 
 
-def load_model(model_name):
+def load_model(model_name, tracking_ip, current_state):
+    """mlflow 저장된 모델에서 되어 있는 모델을 불러오는 함수
+
+    Parameters
+    ---------
+    model_name: str
+        model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
+    tracking_ip: str
+        mlflow sever가 저장되어 있는 ip주소
+    current_state: str
+        가져오고 있는 모델의 상태. ex) Production
+
+    Return
+    ---------
+    model: torch.nn
+        사전에 학습된 pytorch model
     """
-    Description: mlflow에 올라가 있는 모델과 embedding된 결과를 사용해서
-    ---------
-    Arguments:
-        model_name: model에 들어갈 model 이름.
-    ---------
-    Return:
-        model: mlflow에서 production 단계로 올라가 있는 model
-    ---------
-    """
-    tracking_server_uri = "http://34.64.184.112:5000/"
+    tracking_server_uri = "{}:5000/".format(tracking_ip)
     mlflow.set_tracking_uri(tracking_server_uri)
     client = MlflowClient()
     filter_string = "name = '{}'".format(model_name)
     result = client.search_model_versions(filter_string)
 
     for res in result:
-        if res.current_stage == "Production":
+        if res.current_stage == "{}".format(current_state):
             deploy_version = res.version
     model_uri = client.get_model_version_download_uri(
         model_name, deploy_version
@@ -71,17 +80,22 @@ def load_model(model_name):
 
 def inference(model, input_ids, attention_mask):
     """
-    Description: mlflow에 올라가 있는 모델과 embedding된 결과를 사용해서 모델을 inference한다.
+    pytorch 모델과 embedding된 문장을 사용해서 문장이 긍정적인지, 부정적인지 분류한다.
+
+    Parameters
     ---------
-    Arguments:
-    input_text: str
-        사용자가 넣을 문장 정보.
-    PRE_TRAINED_MODEL_NAME: model name
-        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름.
-    ---------
-    Return:
-        input_ids
-        attention_mask
+    model: torch.nn
+        사전에 학습된 pytorch model
+    input_ids: tensor
+        encoding된 단어들이 숫자로 표현된 결과
+    attention_mask: tensor
+        단어가 있는지의 여부를 표시하는 결과, 문장이 있으면 1, 문자가 없고 padding이 되어 있으면 0으로 표시된다.
+
+    Returns
+        softmax_prob: tensor
+            문장이 긍정적인지 부정적인지 확률로 나타낸 결과
+        prediction: tensor
+            문장이 긍정적인지 부정적인지 0 혹은 1로 나타낸 결과
     ---------
     """
     logits = model(input_ids, attention_mask)
@@ -91,9 +105,39 @@ def inference(model, input_ids, attention_mask):
     return softmax_prob, prediction
 
 
-def inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
+def inference_sentence(
+    input_text: str,
+    PRE_TRAINED_MODEL_NAME,
+    model_name,
+    tracking_ip,
+    current_state,
+):
+    """inference 함수를 사용해서, 문장 단위로 문장이 긍정적인지, 부정적인지 보여준다.
+
+    Parameters
+    ---------
+    input_text: str
+        모델에 사용하고자 하는 문장
+    PRE_TRAINED_MODEL_NAME: str
+        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름. 사용할 모델과 PRE_TRAINED_MODEL_NAME의 정보가 맞아야 한다.
+        참고: https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
+    model_name: str
+        model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
+    tracking_ip: str
+        mlflow sever가 저장되어 있는 ip주소
+    current_state: str
+        가져오고 있는 모델의 상태. ex) Production
+
+    Returns
+    ---------
+    softmax_prob: tensor
+        문장이 긍정적인지 부정적인지 확률로 나타낸 결과
+    prediction: tensor
+        문장이 긍정적인지 부정적인지 0 혹은 1로 나타낸 결과
+    ---------
+    """
     input_ids, attention_mask = embedding(input_text, PRE_TRAINED_MODEL_NAME)
-    model = load_model(model_name)
+    model = load_model(model_name, tracking_ip, current_state)
     class_prob, pred = inference(model, input_ids, attention_mask)
     return (
         class_prob.detach().cpu().numpy()[0],
@@ -101,7 +145,37 @@ def inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name):
     )
 
 
-def inference_df(preprocessed_data, PRE_TRAINED_MODEL_NAME, model_name):
+def inference_df(
+    preprocessed_data,
+    PRE_TRAINED_MODEL_NAME,
+    model_name,
+    tracking_ip,
+    current_state,
+):
+    """
+    inference 함수를 사용해서, dataframe 단위로 문장이 긍정적인지, 부정적인지 보여준다.
+
+    Parameters
+    ---------
+    input_text: str
+        모델에 사용하고자 하는 문장
+    PRE_TRAINED_MODEL_NAME: str
+        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름. 사용할 모델과 PRE_TRAINED_MODEL_NAME의 정보가 맞아야 한다.
+        참고: https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
+    model_name: str
+        model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
+    tracking_ip: str
+        mlflow sever가 저장되어 있는 ip주소
+    current_state: str
+        가져오고 있는 모델의 상태. ex) Production
+
+    Return:
+    ---------
+    softmax_prob: tensor
+        문장이 긍정적인지 부정적인지 확률로 나타낸 결과
+    prediction: tensor
+        문장이 긍정적인지 부정적인지 0 혹은 1로 나타낸 결과
+    """
     preprocessed_data["class_prob"] = ""
     preprocessed_data["pred"] = ""
     for i in range(len(preprocessed_data)):
@@ -112,5 +186,7 @@ def inference_df(preprocessed_data, PRE_TRAINED_MODEL_NAME, model_name):
             preprocessed_data["input_text"][i],
             PRE_TRAINED_MODEL_NAME,
             model_name,
+            tracking_ip,
+            current_state,
         )
     return preprocessed_data

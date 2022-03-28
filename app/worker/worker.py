@@ -1,23 +1,23 @@
 import random
 import time
-
-from celery import Celery, Task
-from worker.predict import embedding, predicting
-from schema import NLPText
 from typing import Dict
 
+import import
+import mlflow.tracking
+import MlflowClient
 import numpy as np
 import pandas as pd
 import torch
-import mlflow.tracking import MlflowClient
-from preprocessing import morethan_two_countries
-from transformers import AutoTokenizer
+from celery import Celery, Task
+from schema import NLPText
+from worker.predict import embedding, predicting
 
 app = Celery(
     "my_tasks",
-     broker="amqp://guest:guest@localhost:5672//",
-     backend="rpc://"
+    broker="amqp://guest:guest@localhost:5672//",
+    backend="rpc://"
 )
+
 
 class SimplePredict(Task):
 
@@ -26,7 +26,8 @@ class SimplePredict(Task):
         self.model = None
 
     def __call__(self, *args, **kwargs):
-        if  not self.model:
+        if not self.model:
+            # 이거 ip parameter로 하기를 추천함.
             tracking_server_uri = "http://34.64.184.112:5000/"
             mlflow.set_tracking_uri(tracking_server_uri)
             client = MlflowClient()
@@ -37,9 +38,10 @@ class SimplePredict(Task):
                 if res.current_stage == "Production":
                     deploy_version = res.version
             model_uri = client.get_model_version_download_uri(
-                            model_name, deploy_version
-                        )
+                model_name, deploy_version
+            )
             self.model = mlflow.pytorch.load_model(model_uri)
+
 
 @app.task
 def nlp_working(text: Dict):
@@ -50,41 +52,42 @@ def nlp_working(text: Dict):
     # print(type(text.input_text))
     # print(type(text.pretrained_model_name))
     # print(type(text.model_name))
-    result = predicting( 
-            # "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender.",
-            # "google/mobilebert-uncased",
-            # "mobilebert_ver1"
-            # text.input_text,
-            # text.pretrained_model_name,
-            # text.model_name
-            text['input_text'],
-            text['pretrained_model_name'],
-            text['model_name']
-    
+    result = predicting(
+        # "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender.",
+        # "google/mobilebert-uncased",
+        # "mobilebert_ver1"
+        # text.input_text,
+        # text.pretrained_model_name,
+        # text.model_name
+        text['input_text'],
+        text['pretrained_model_name'],
+        text['model_name']
+
     )
     return result
 
+
 @app.task(
-            ignore_result = False,
-            bind = True,
-            base = SimplePredict,
-            model_name = mobilebert_ver1
-        )
+    ignore_result=False,
+    bind=True,
+    base=SimplePredict,
+    model_name=mobilebert_ver1  # model name 변경했습니다.
+)
 def prepared_nlp_working(text: Dict):
     input_ids, attention_mask = embedding(text['input_text'])
     logits = model(input_ids, attention_mask)
-    
+
     # softmax_prob = torch.nn.functional.softmax(logits, dim=1)
     class_prob = torch.nn.functional.softmax(logits, dim=1)
     class_prob = class_prob.detach().cpu().numpy()[0]
-    
+
     # _, prediction = torch.max(softmax_prob, dim=1)
     _, pred = torch.max(softmax_prob, dim=1)
     pred = pred.detach().cpu().numpy()[0]
 
     valid, related_nation = morethan_two_countries(input_text)
     if valid:
-        
+
         relation_dict = {"0": "나쁘", "1": "좋음"}
         relation = relation_dict[str(pred)]
         answer = (
@@ -101,7 +104,6 @@ def prepared_nlp_working(text: Dict):
         print(answer)
         class_prob, pred = None, None
     return (class_prob, pred, answer)
-
 
 
 @app.task

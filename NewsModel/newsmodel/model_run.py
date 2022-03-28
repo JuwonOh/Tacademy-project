@@ -43,7 +43,7 @@ if __name__ == "__main__":
     is_quantization = args.is_quantization
     experiment_name = args.experiment_name
 
-    tracking_server_uri = "http://34.64.184.112:5000"
+    tracking_server_uri = "http://34.64.73.79:5000"
     mlflow.set_tracking_uri(tracking_server_uri)
 
     print(mlflow.get_tracking_uri())
