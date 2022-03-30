@@ -87,7 +87,7 @@
 - 기간: 2019.07.01 ~ 2022.03.22
 
 <p align="center">
-<img src=./img/newsource.jpg width="800" height="400"> 
+<img src="./img/newsource.jpg" width="800" height="400"> 
 </p>
 
 <br>
@@ -104,7 +104,7 @@
 <br>
 
 <p align="center">
-<img src=img/project_outline.jpg width="900" height="250">
+<img src="./img/project_outline.jpg" width="900" height="250">
 </p>
 
 
