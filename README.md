@@ -1,5 +1,5 @@
 <h1> MLOps System Building Project</h1>
-<h2> <img src="img/MLOps-Cycle.png" width="30" height="20"/> 프로젝트 목표 <img src="img/MLOps-Cycle.png" width="30" height="20"/> </h2>
+<h2> <img src="image/MLOps-Cycle.png" width="30" height="20"/> 프로젝트 목표 <img src="image/MLOps-Cycle.png" width="30" height="20"/> </h2>
 
 <h3>: Deep Learing Model을 활용한 MLOps 시스템 구축 </h3>
 <br>
@@ -26,14 +26,14 @@
 
 <br>
 
-- [3. 모델링 (NLP)](#3-모델링)
+- [3. 모델링 (NLP)](#3-모델링-(NLP))
    - [3.1 Features](#31-Features)
 
 <br>
 
 - [4. MLflow를 사용한 모델 실험 관리](#4-MLflow를-사용한-모델관리)
    - [4.1 Features](#41-Features)
-   - [4.2 Usage](##42-Usage)
+   - [4.2 Usage](#42-Usage)
 
 <br>
 
@@ -53,10 +53,6 @@
    - [7.1 Workflow Management](#71-Workflow-Management)
    - [7.2 Model](#72-Model)
    - [7.3 Serving](#73-Serving)
-
-<br>
-
-- [8. 마치며](#8-마치며)
 
 <br>
 <br>
@@ -87,7 +83,7 @@
 - 기간: 2019.07.01 ~ 2022.03.22
 
 <p align="center">
-<img src="img/newsource.png" width="800" height="400"> 
+<img src="image/newsource.png" width="800" height="400"> 
 </p>
 
 <br>
@@ -104,7 +100,7 @@
 <br>
 
 <p align="center">
-<img src="img/data_lifecycle.png" width="800" height="250">
+<img src="image/data_lifecycle.png" width="800" height="250">
 </p>
 
 
@@ -118,6 +114,7 @@
 <br>
 
 # 2. MLOps란?
+
 ## 2.1 MLOps를 선택한 이유
 - 문제 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 데이터 수집 횟수, 모델 실험, 모델 서빙, 코드와 인프라 관리에서의 어려움
 - 모델실험관리 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 실험 관리, 서빙 모델 관리 ( [MLflow](#4-MLflow를-사용한-모델관리) )
@@ -128,7 +125,7 @@
 <br>
 
 <p align="center">
-   <img src="img/project_structure.png" width="800" height="400">
+   <img src="image/project_structure.png" width="800" height="400">
 </p>
 
 
@@ -138,6 +135,7 @@
 <br>
 
 # 3. 모델링 (NLP)
+
 ## 3.1 Features
 - 모델 선택: 여러 모델을 실험하여, 가장 성능이 좋은 모델을 선정
 - 모델 선택 기준
@@ -160,6 +158,7 @@
 <br>
 
 # 4. MLflow를 사용한 모델관리
+
 ## 4.1 Features
 - 학습시킨 모델들을 MLflow를 사용하여 '프로젝트(Experiment) 및 실험단위(Run)로' 저장소([GCP-Storage Bucket](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB))에 관리합니다.
 - MLflow를 사용하여 학습시킨 실험에 대한 정보(성능평가지표, 파라미터, 모델버전) 등은 [Postgresql DB](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB)에 저장합니다.
@@ -172,6 +171,7 @@
 <br>
 
 ## 4.2 Usage
+
 - [4.1 Features](#41-Features) 에서 설명드린 기능들을 이용하기 위해서는 먼저 MLflow Server를 열어줘야 합니다.
 - MLflow Server는 다음의 코드를 통해 열 수 있습니다.
 
@@ -185,6 +185,7 @@
 <br>
 
 # 5. GCP(Google Cloud Platform)를 사용한 클라우드 기반 프로젝트 구축
+
 ## 5.1 Google Compute Engine (Instance-Ubuntu)
 - 내용: 저희 프로젝트에서는 인스턴스(Ubuntu)를 사용하여 [MLflow Server 연결](#42-Usage), [Docker를 활용한 DB 생성](#53-Docker-Container), [데이터 관리](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB) 등을 하고 있습니다.
 - 사용 이유: GCE(Google Compute Engine)에서 가상 머신(VM)이 표준 이미지 또는 사용자가 만든 커스텀 이미지로부터 런칭이 가능하기 때문에 쉽게 생성하고 사용할 수 있습니다.
@@ -192,12 +193,14 @@
 <br>
 
 ## 5.2 Google Storage Bucket(저장소) & Postgresql DB
+
 - 내용: 학습시킨 모델들은 프로젝트(Experiment) 아래 실험단위(Run)로 저장소(GCP-Storage-Bucket)에, 실험에 대한 정보(성능평가지표, 파라미터, 모델버전)들은 Postgresql DB에 저장하여 관리하고 있습니다.
 - 사용 이유: Local에 Artifacts(Model, Image, Data 파일)를 저장하게 되면, Local의 성능저하 및 보안상의 이슈 때문에  Local이 아닌 데이터 저장소를 따로 두었고 저희는 데이터 저장소로 GCP-Storage-Bucket와 Postgresql DB로 선정하였습니다.
 
 <br>
 
 ## 5.3 Docker Container
+
 - 내용: GCE를 통해 생성한 인스턴스(Ubuntu)에 Docker를 설치하고, Container 기술을 이용하여 [Postgresql DB](#54-Postgresql-db)를 띄웠습니다.
 - 사용 이유: 코드를 더 빨리 전달하고, 애플리케이션 운영을 표준화하고, 코드를 원활하게 이동하고, 리소스 사용률을 높여 비용을 절감할 수 있었습니다.
 
@@ -206,6 +209,7 @@
 <br>
 
 # 6. Fast API를 사용한 모델 서빙
+
 ## 6.1 Features
 - [MLflow](#4-MLflow를-사용한-모델관리)에 저장된 모델을 이용하여 inference 결과를 제공합니다.
 API Server는 inference 요청이 들어오면 데이터 검증을 하고 이후 미리 [MLflow Server](#42-Usage)와 통신하여 로드된 모델을 통해 요청사항을 처리하여 결과를 반환합니다. 요청을 받고 반환하는 API는 Fast API를 이용하였고 API 성능 개선 및 향상을 위해 celery를 사용하였습니다.
@@ -215,6 +219,7 @@ API Server는 inference 요청이 들어오면 데이터 검증을 하고 이후
 <br>
 
 # 7. 보완점
+
 ## 7.1 Workflow Management
 #### &nbsp;&nbsp;&nbsp;&nbsp; 1) Achiving 모델 학습, 예측, 데이터 수집까지 자동으로 수행하는 파이프라인 구축
 #### &nbsp;&nbsp;&nbsp;&nbsp; 2) 시스템 자동화를 위해서 Airflow Tool을 사용예정
@@ -222,11 +227,13 @@ API Server는 inference 요청이 들어오면 데이터 검증을 하고 이후
 <br>
 
 ## 7.2 Model
+
 #### &nbsp;&nbsp;&nbsp;&nbsp; 1) 지속적인 SOTA 모델 적용
 #### &nbsp;&nbsp;&nbsp;&nbsp; 2) 국가간 관계의 맥락에서 Entity Level Sentiment Analysis 사용 해보기
 
 <br>
 
 ## 7.3 Serving
+
 #### &nbsp;&nbsp;&nbsp;&nbsp; 1) 각 모델의 정보와 특정 모델을 사용할 수 있는 기능 추가
 #### &nbsp;&nbsp;&nbsp;&nbsp; 2) Serving 성능 및 속도 향상을 위해 Tool 추가 ex) Redis
