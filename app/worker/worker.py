@@ -1,16 +1,13 @@
-import random
-import time
 from typing import Dict
-
-import import
-import mlflow.tracking
-import MlflowClient
 import numpy as np
 import pandas as pd
 import torch
-from celery import Celery, Task
 from schema import NLPText
-from worker.predict import embedding, predicting
+from celery import Celery, Task
+import newsmodel
+from newsmodel.inference import embedding, load_model, inference, inference_sentence
+from newsmodel.preprocess import NewspieacePreprocess, morethan_two_countries
+from worker.predict import predicting
 
 app = Celery(
     "my_tasks",
@@ -20,92 +17,76 @@ app = Celery(
 
 
 class SimplePredict(Task):
-
     def __init__(self):
         super().__init__()
         self.model = None
-
     def __call__(self, *args, **kwargs):
         if not self.model:
-            # 이거 ip parameter로 하기를 추천함.
-            tracking_server_uri = "http://34.64.184.112:5000/"
-            mlflow.set_tracking_uri(tracking_server_uri)
-            client = MlflowClient()
-            filter_string = "name = '{}'".format(self.model_name)
-            result = client.search_model_versions(filter_string)
-
-            for res in result:
-                if res.current_stage == "Production":
-                    deploy_version = res.version
-            model_uri = client.get_model_version_download_uri(
-                model_name, deploy_version
-            )
-            self.model = mlflow.pytorch.load_model(model_uri)
+            self.model = load_model(self.model_name, self.ip_params)
+            return self.run(*args, **kwargs)
 
 
 @app.task
 def nlp_working(text: Dict):
-    time.sleep(1)
-    # a = NLPpredict()
-    # class_prob, pred = a.loaded_model(text)
-    # print(f"각 확률은 {class_prob}이고, 따라서 결과는 {pred}이다")
-    # print(type(text.input_text))
-    # print(type(text.pretrained_model_name))
-    # print(type(text.model_name))
+    """
+    값(문장, 모델) 입력 시 분석해주는 Task.
+        Parameters
+        ----------
+        text : Dict
+            API router로부터 NLPText 클래스에 해당하는 입력값을 dictionary 형태로 받아온다.
+        Returns
+        -------
+        result : Dict
+            값은 class_prob, pred, result 값을 가지고 있는 dictionary 형태로 반환한다.
+    """
     result = predicting(
-        # "President Joe Biden must take expeditious and decisive action immediately against the Russian Federation. The President must order all Russian and civilians to lay down their arms and surrender.",
-        # "google/mobilebert-uncased",
-        # "mobilebert_ver1"
-        # text.input_text,
-        # text.pretrained_model_name,
-        # text.model_name
         text['input_text'],
         text['pretrained_model_name'],
-        text['model_name']
-
+        text['model_name'],
+        text['ip_param']
     )
     return result
 
-
+    
 @app.task(
     ignore_result=False,
     bind=True,
     base=SimplePredict,
-    model_name=mobilebert_ver1  # model name 변경했습니다.
+    model_name = "mobilebert",
+    ip_params = "http://34.64.73.79"
 )
-def prepared_nlp_working(text: Dict):
-    input_ids, attention_mask = embedding(text['input_text'])
-    logits = model(input_ids, attention_mask)
-
-    # softmax_prob = torch.nn.functional.softmax(logits, dim=1)
-    class_prob = torch.nn.functional.softmax(logits, dim=1)
-    class_prob = class_prob.detach().cpu().numpy()[0]
-
-    # _, prediction = torch.max(softmax_prob, dim=1)
-    _, pred = torch.max(softmax_prob, dim=1)
-    pred = pred.detach().cpu().numpy()[0]
-
-    valid, related_nation = morethan_two_countries(input_text)
+def prepared_nlp_working(self, text: Dict):
+    
+    """
+    값(문장, 모델) 입력 시 미리 메모리에 올린 모델을 이용하여 입력값을 분석해주는 Task.
+        Parameters
+        ----------
+        text : Dict
+            API router로부터 NLPText 클래스에 해당하는 입력값을 dictionary 형태로 받아온다.
+        Returns
+        -------
+        result : Dict
+            값은 class_prob, pred, result 값을 가지고 있는 dictionary 형태로 반환한다.
+    """
+    valid, related_nation = morethan_two_countries(text['input_text'])
     if valid:
-
-        relation_dict = {"0": "나쁘", "1": "좋음"}
+        input_ids, attention_mask = embedding(text['input_text'], text['pretrained_model_name'])
+        class_prob, pred = inference.inference(self.model, input_ids, attention_mask)
+        class_prob = class_prob.detach().cpu().numpy()[0]
+        pred = pred.detach().cpu().numpy()[0]
+        relation_dict = {"0": "나쁘", "1": "좋"}
         relation = relation_dict[str(pred)]
         answer = (
             "이 문장은 {}사이의 관계에 대한 문장입니다. 이 문장에서는 {}의 관계가 {}다고 예측합니다.".format(
                 related_nation, related_nation, relation
             )
         )
-        print(answer)
-
+        result = {'class_prob':class_prob.tolist(), 'pred':int(pred), 'answer':answer}
     else:
-        answer = (
-            "이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요."
-        )
+        answer = "이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요
+."
         print(answer)
         class_prob, pred = None, None
-    return (class_prob, pred, answer)
+        result = {'class_prob':'nothing', 'pred':'nothing', 'answer':answer}
 
-
-@app.task
-def callback(result):
     return result
