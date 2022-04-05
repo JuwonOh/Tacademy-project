@@ -2,9 +2,9 @@ import argparse
 import json
 import os
 import re
+from global_scraper import yield_latest_article
+from global_scraper import now
 import unicodedata
-
-from global_scraper import now, yield_latest_article
 
 
 def save(json_obj, directory):
@@ -34,16 +34,10 @@ def main():
         help="Sleep time for each submission (post)",
     )
     parser.add_argument(
-        "--max_page",
-        type=int,
-        default=1250241,
-        help="Number of scrapped articles page",
+        "--max_page", type=int, default=1255227, help="Number of scrapped articles page"
     )
     parser.add_argument(
-        "--begin_date",
-        type=str,
-        default="2022-01-01",
-        help="Number of start documents",
+        "--begin_date", type=str, default="2022-03-04", help="Number of start documents"
     )
     parser.add_argument("--verbose", dest="VERBOSE", action="store_true")
 
