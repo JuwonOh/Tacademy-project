@@ -6,7 +6,6 @@ class SentimentClassifier(nn.Module):
     """torch의 nn.Module을 사용해서 분류기 클래스의 기본적인 구조가 들어있는 모듈
     ---------
     """
-
     # caution: 코드가 중복되지 않게 pretrained_model_name만을 사용해서 할 수는 없을까?
 
     def __init__(self, pretrained_model_name, n_classes):

@@ -9,8 +9,8 @@ import numpy as np
 import pandas as pd
 import torch
 import transformers
-from config import PathConfig
-from dataloader.dataloader import SentimentDataset, load_dataset
+import mlflow
+from data.dataloader import SentimentDataset, load_dataset
 from model.model import SentimentClassifier
 from sklearn.model_selection import train_test_split
 from torch import nn
@@ -19,26 +19,29 @@ from transformers import (
     AdamW,
     AutoModel,
     AutoTokenizer,
-    get_linear_schedule_with_warmup,
+    get_linear_schedule_with_warmup
 )
 
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
 
 
-class NewspieceModeling(PathConfig, SentimentClassifier):
-    def __init__(self):
-        PathConfig.__init__(self)
+class NewsTrain:
+    def __init__(self, pretrained_model_name="google/mobilebert-uncased", random_seed=42, model_directory="./", data_directory='./data', quantization=True, server_uri, experiment_name, run_name, version="1.0"):
+        self.pretrained_model_name = pretrained_model_name
+        self.random_seed = random_seed
+        self.model_directory = model_directory
+        self.data_directory = data_directory
+        self.quantization = quantization
+        self.server_uri = server_uri
+        self.experiment_name = experiment_name
+        self.run_name = run_name
+        self.version = version
 
-    def run_bert(
-        pretrained_model_name,
-        batch_size,
-        epoch,
-        random_seed,
-        model_directory,
-        data_directory,
-        is_quantization,
-    ):
+    def train_model(
+            self,
+            batch_size,
+            epoch):
         """기존에 라벨링된 데이터를 불러와서 모델을 학습하는 함수입니다.
 
         Parameters
@@ -55,7 +58,7 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
             학습시킨 모델이 저장되는 위치
         data_directory: str
             학습 데이터가 있는 위치
-        is_quantization: boolean
+        quantization: boolean
             model 양자화 여부를 선택
 
         Return
@@ -65,28 +68,28 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
         best_accuracy: numpy
             train epoch에서 가장 높은 정확도. mlflow의 model metric으로 사용된다.
         """
-        if not os.path.exists(model_directory):
-            os.makedirs(model_directory)
+        if not os.path.exists(self.model_directory):
+            os.makedirs(self.model_directory)
 
         # random seed 지정
-        np.random.seed(random_seed)
-        torch.manual_seed(random_seed)
+        np.random.seed(self.random_seed)
+        torch.manual_seed(self.random_seed)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         tokenizer = AutoTokenizer.from_pretrained(
-            pretrained_model_name  # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
+            # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
+            self.pretrained_model_name
         )
         # batch size
-        BATCH_SIZE = batch_size
         # 원 자료에서 label이 있는 column
         tag = "sentiment"
 
         # data split
-        train_df, valid_df = load_dataset(tag, data_directory)
+        train_df, valid_df = load_dataset(tag, self.data_directory)
         print(train_df)
         print(valid_df)
         df_train, df_test = train_test_split(
-            train_df, test_size=0.2, random_state=random_seed
+            train_df, test_size=0.2, random_state=self.random_seed
         )
 
         # load dataset
@@ -97,7 +100,7 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
             max_len=512,
         )
         train_dataloader = DataLoader(
-            train_dataset, batch_size=BATCH_SIZE, num_workers=0
+            train_dataset, batch_size=batch_size, num_workers=0
         )
 
         test_dataset = SentimentDataset(
@@ -107,22 +110,16 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
             max_len=512,
         )
         test_dataloader = DataLoader(
-            test_dataset, batch_size=BATCH_SIZE, num_workers=0
+            test_dataset, batch_size=batch_size, num_workers=0
         )
         # torch dataloader 지정.
-        data = next(iter(train_dataloader))
-
-        bert_model = AutoModel.from_pretrained(pretrained_model_name)
+        #data = next(iter(train_dataloader))
 
         # 지정한 classifier에 label의 수와 모델이름을 넣는다.
-        model = SentimentClassifier(pretrained_model_name, 2)
+        model = SentimentClassifier(self.pretrained_model_name, 2)
         model = model.to(device)
 
         # gpu cpu와 메모리를 비움. 실 사용에서 주의
-        import gc
-
-        gc.collect()
-        torch.cuda.empty_cache()
 
         EPOCHS = epoch  # 바꿔야할 파라미터
         optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
@@ -162,34 +159,63 @@ class NewspieceModeling(PathConfig, SentimentClassifier):
             history["val_acc"].append(val_acc)
             history["val_loss"].append(val_loss)
 
-            file_path = self.model_path + "/{}.pt".format(
-                pretrained_model_name.split("/")[-1]
-            )
-
             if val_acc > best_accuracy:
-                # save_checkpoint(epoch, model, optimizer,
-                #                file_path, val_acc, val_loss)
-                torch.save(
-                    model.state_dict(),
-                    self.model_path
-                    + "/{}.pt".format(pretrained_model_name.split("/")[-1]),
-                )
-                best_accuracy = val_acc
-
-                if is_quantization:
-                    quantized_model = torch.quantization.quantize_dynamic(
-                        model.to("cpu"), {torch.nn.Linear}, dtype=torch.qint8
-                    )
-                    torch.save(
-                        quantized_model.state_dict(),
-                        self.model_path
-                        + "/quantized_{}.pt".format(
-                            pretrained_model_name.split("/")[-1]
-                        ),
-                    )
-                else:
+                if self.model_path is None:
                     pass
+                else:
+                    torch.save(
+                        model.state_dict(),
+                        self.model_path
+                        + "/{}.pt".format(self.pretrained_model_name.split("/")[-1]),
+                    )
+                    best_accuracy = val_acc
+
+                    if self.quantization is True:
+                        quantized_model = torch.quantization.quantize_dynamic(
+                            model.to("cpu"), {torch.nn.Linear}, dtype=torch.qint8
+                        )
+                        torch.save(
+                            quantized_model.state_dict(),
+                            self.model_path
+                            + "/quantized_{}.pt".format(
+                                self.pretrained_model_name.split("/")[-1]
+                            ),
+                        )
+                    else:
+                        pass
         return model, best_accuracy.item()
+
+    def mlflow_save(self, model, best_accuracy, quantization):
+        mlflow.set_tracking_uri(self.server_uri)
+        print("save uri is {}".format(mlflow.get_tracking_uri()))
+        mlflow.set_experiment(self.experiment_name)
+
+        tags = {"model_name": self.run_name, "release.version": self.version}
+
+        with mlflow.start_run() as run:
+            mlflow.pytorch.log_model(model, self.run_name)
+            mlflow.log_params(NewsTrainer.__dict__)
+            mlflow.log_metric("val_acc", best_accuracy)
+            mlflow.set_tags(tags)
+
+        mlflow.end_run()
+
+        if quantization is True:
+            mlflow.set_experiment(self.experiment_name+'quantization')
+
+            tags = {"model_name": self.run_name +
+                    'quantization', "release.version": self.version}
+
+            quantized_model = torch.quantization.quantize_dynamic(
+                model.to("cpu"), {torch.nn.Linear}, dtype=torch.qint16)
+
+            with mlflow.start_run() as run:
+                mlflow.pytorch.log_model(quantized_model, self.run_name)
+                mlflow.log_params(NewsTrainer.__dict__)
+                mlflow.log_metric("val_acc", best_accuracy)
+                mlflow.set_tags(tags)
+
+            mlflow.end_run()
 
 
 def train_epoch(

@@ -6,6 +6,8 @@ from preprocess import NewspieacePreprocess
 from trainer import NewspieceModeling
 from utils import model_dic
 
+# deprecate 될 예정. 다만 server에서 자료를 input해 와서 server에 넣는 부분은 추가해야 한다.
+
 
 class NewspieaceMain(PathConfig):
     def __init__(self):

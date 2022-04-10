@@ -1,1 +1,1 @@
-from .nlp_model import NewspieceModeling
+from .nlp_model import NewsTrain
