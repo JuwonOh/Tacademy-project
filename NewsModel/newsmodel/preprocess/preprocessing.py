@@ -15,7 +15,7 @@ from .textrank import sort_sentence_importance
 
 
 class NewspieacePreprocess:
-    def __init__(self, tag_filter_value: str = "0"):
+    def __init__(self, tag_filter_value):
         self._tag_filter_value = tag_filter_value
 
     def run_preprocessing(self, data):  # data = news.json or news.csv
@@ -31,7 +31,7 @@ class NewspieacePreprocess:
             전처리 후의 데이터
         """
         print(data["content"])
-        ner_df = quasiNER_extractor3(data, "content")
+        ner_df = self.quasiNER_extractor3(data, "content")
         ner_df["sententce_ner"] = ""
         for a in range(len(ner_df)):
             try:
@@ -44,61 +44,63 @@ class NewspieacePreprocess:
                 ner_df["sententce_ner"][a] = ""
         return ner_df
 
+    def corpus_to_nerlist(input_corpus):
+        return list(
+            set(chain.from_iterable(map(sentence_to_nerlist, input_corpus)))
+        )
 
-def corpus_to_nerlist(input_corpus):
-    return list(
-        set(chain.from_iterable(map(sentence_to_nerlist, input_corpus)))
-    )
+    def quasiNER_extractor3(dataframe, nameof_articlebody_column):
+        """기존에 앞에서 작성한 함수를 연결하여 실행하는 코드이다.
 
-
-def quasiNER_extractor3(dataframe, nameof_articlebody_column):
-    """기존에 앞에서 작성한 함수를 연결하여 실행하는 코드이다.
-
-    Parameters
-    ---------
-    dataframe: pandas dataframe
-        국가간 관계가 들어가 있는 데이터 프레임을 넣는다.
-    nameof_articlebody_column: str
-        데이터 프레임의 칼럼 이름을 넣는다.
-    ---------
-    Return: pandas.dataframe
-        전처리가 전부 완료된 데이터 프레임
-    """
-    dataframe["lowercase_" + nameof_articlebody_column] = dataframe[
-        nameof_articlebody_column
-    ]
-    quasinerdf_output_list = []
-    dataframe["doc_id"] = ""
-    for doc_id in ProgressBar(
-        range(len(dataframe["lowercase_" + nameof_articlebody_column]))
-    ):
-        dataframe["doc_id"][doc_id] = doc_id
-        input_text = dataframe["lowercase_" + nameof_articlebody_column][
-            doc_id
+        Parameters
+        ---------
+        dataframe: pandas dataframe
+            국가간 관계가 들어가 있는 데이터 프레임을 넣는다.
+        nameof_articlebody_column: str
+            데이터 프레임의 칼럼 이름을 넣는다.
+        ---------
+        Return: pandas.dataframe
+            전처리가 전부 완료된 데이터 프레임
+        """
+        dataframe["lowercase_" + nameof_articlebody_column] = dataframe[
+            nameof_articlebody_column
         ]
-        try:
-            sentence = " ".join(
-                sort_sentence_importance(input_text, standard="mean", topn=3)
+        quasinerdf_output_list = []
+        dataframe["doc_id"] = ""
+        except_sentence = []
+        for doc_id in ProgressBar(
+            range(len(dataframe["lowercase_" + nameof_articlebody_column]))
+        ):
+            dataframe["doc_id"][doc_id] = doc_id
+            input_text = dataframe["lowercase_" + nameof_articlebody_column][
+                doc_id
+            ]
+            try:
+                sentence = " ".join(
+                    sort_sentence_importance(
+                        input_text, standard="mean", topn=3
+                    )
+                )
+            except:
+                except_sentence.append(doc_id)
+                sentence = ""
+
+            vectorized_morethan_two_countries = np.vectorize(
+                morethan_two_countries, otypes=[list]
             )
-        except:
-            sentence = ""
+            output_list = vectorized_morethan_two_countries(sentence)
+            output_df = pd.DataFrame.from_records(
+                [output_list], columns=["isvalid", "list_of_countries"]
+            )
+            output_df["input_text"] = sentence
 
-        vectorized_morethan_two_countries = np.vectorize(
-            morethan_two_countries, otypes=[list]
-        )
-        output_list = vectorized_morethan_two_countries(sentence)
-        output_df = pd.DataFrame.from_records(
-            [output_list], columns=["isvalid", "list_of_countries"]
-        )
-        output_df["input_text"] = sentence
+            output_df["doc_id"] = doc_id
+            quasinerdf_output_list.append(output_df)
 
-        output_df["doc_id"] = doc_id
-        quasinerdf_output_list.append(output_df)
-
-    quasinerdf_output_df = pd.concat(quasinerdf_output_list)
-    quasinerdf_output_df = quasinerdf_output_df[
-        quasinerdf_output_df["isvalid"] == True
-    ].reset_index(drop=True)
-    del quasinerdf_output_df["isvalid"]
-    all_df = pd.merge(dataframe, quasinerdf_output_df)
-    return all_df
+        quasinerdf_output_df = pd.concat(quasinerdf_output_list)
+        quasinerdf_output_df = quasinerdf_output_df[
+            quasinerdf_output_df["isvalid"] == True
+        ].reset_index(drop=True)
+        del quasinerdf_output_df["isvalid"]
+        all_df = pd.merge(dataframe, quasinerdf_output_df)
+        return all_df

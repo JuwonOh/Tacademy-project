@@ -5,12 +5,12 @@ import warnings
 from ast import Yield
 from collections import defaultdict
 
+import mlflow
 import numpy as np
 import pandas as pd
 import torch
 import transformers
-import mlflow
-from data.dataloader import SentimentDataset, load_dataset
+from dataloader.dataloader import SentimentDataset, load_dataset
 from model.model import SentimentClassifier
 from sklearn.model_selection import train_test_split
 from torch import nn
@@ -19,7 +19,7 @@ from transformers import (
     AdamW,
     AutoModel,
     AutoTokenizer,
-    get_linear_schedule_with_warmup
+    get_linear_schedule_with_warmup,
 )
 
 warnings.filterwarnings("ignore")
@@ -27,7 +27,19 @@ warnings.simplefilter("ignore")
 
 
 class NewsTrain:
-    def __init__(self, pretrained_model_name="google/mobilebert-uncased", random_seed=42, model_directory="./", data_directory='./data', quantization=True, server_uri, experiment_name, run_name, version="1.0"):
+    def __init__(
+        self,
+        server_uri,
+        experiment_name,
+        run_name,
+        device="cuda",
+        pretrained_model_name="google/mobilebert-uncased",
+        random_seed=42,
+        model_directory="./saved_model",
+        data_directory="./input_data/labeled_data",
+        quantization=True,
+        version="1.0",
+    ):
         self.pretrained_model_name = pretrained_model_name
         self.random_seed = random_seed
         self.model_directory = model_directory
@@ -37,11 +49,9 @@ class NewsTrain:
         self.experiment_name = experiment_name
         self.run_name = run_name
         self.version = version
+        self.device = device
 
-    def train_model(
-            self,
-            batch_size,
-            epoch):
+    def train_model(self, batch_size, epoch):
         """기존에 라벨링된 데이터를 불러와서 모델을 학습하는 함수입니다.
 
         Parameters
@@ -74,7 +84,6 @@ class NewsTrain:
         # random seed 지정
         np.random.seed(self.random_seed)
         torch.manual_seed(self.random_seed)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         tokenizer = AutoTokenizer.from_pretrained(
             # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
@@ -86,8 +95,6 @@ class NewsTrain:
 
         # data split
         train_df, valid_df = load_dataset(tag, self.data_directory)
-        print(train_df)
-        print(valid_df)
         df_train, df_test = train_test_split(
             train_df, test_size=0.2, random_state=self.random_seed
         )
@@ -113,11 +120,11 @@ class NewsTrain:
             test_dataset, batch_size=batch_size, num_workers=0
         )
         # torch dataloader 지정.
-        #data = next(iter(train_dataloader))
+        # data = next(iter(train_dataloader))
 
         # 지정한 classifier에 label의 수와 모델이름을 넣는다.
         model = SentimentClassifier(self.pretrained_model_name, 2)
-        model = model.to(device)
+        model = model.to(self.device)
 
         # gpu cpu와 메모리를 비움. 실 사용에서 주의
 
@@ -127,7 +134,7 @@ class NewsTrain:
         scheduler = get_linear_schedule_with_warmup(
             optimizer, num_warmup_steps=10, num_training_steps=total_steps
         )
-        loss_fn = nn.CrossEntropyLoss().to(device)
+        loss_fn = nn.CrossEntropyLoss().to(self.device)
         # mlflow.pytorch.autolog() autolog를 넣어야 하나
         history = defaultdict(list)
 
@@ -136,18 +143,17 @@ class NewsTrain:
         for epoch in range(EPOCHS):
             print("start {}th train".format(epoch))
 
-            train_acc, train_loss = train_epoch(
+            train_acc, train_loss = self.train_epoch(
                 model,
                 train_dataloader,
                 loss_fn,
                 optimizer,
-                device,
                 scheduler,
                 len(df_train),
             )
 
-            val_acc, val_loss = eval_model(
-                model, test_dataloader, loss_fn, device, len(df_test)
+            val_acc, val_loss = self.eval_model(
+                model, test_dataloader, loss_fn, len(df_test)
             )
 
             print(
@@ -160,142 +166,131 @@ class NewsTrain:
             history["val_loss"].append(val_loss)
 
             if val_acc > best_accuracy:
-                if self.model_path is None:
+                if self.model_directory is None:
                     pass
                 else:
                     torch.save(
                         model.state_dict(),
-                        self.model_path
-                        + "/{}.pt".format(self.pretrained_model_name.split("/")[-1]),
+                        self.model_directory
+                        + "/{}.pt".format(
+                            self.pretrained_model_name.split("/")[-1]
+                        ),
                     )
                     best_accuracy = val_acc
 
                     if self.quantization is True:
                         quantized_model = torch.quantization.quantize_dynamic(
-                            model.to("cpu"), {torch.nn.Linear}, dtype=torch.qint8
+                            model.to("cpu"),
+                            {torch.nn.Linear},
+                            dtype=torch.qint8,
                         )
                         torch.save(
                             quantized_model.state_dict(),
-                            self.model_path
+                            self.model_directory
                             + "/quantized_{}.pt".format(
                                 self.pretrained_model_name.split("/")[-1]
                             ),
                         )
                     else:
-                        pass
-        return model, best_accuracy.item()
+                        quantized_model = None
+        return model, quantized_model, best_accuracy.item()
 
-    def mlflow_save(self, model, best_accuracy, quantization):
+    def mlflow_save(self, model, best_accuracy):
         mlflow.set_tracking_uri(self.server_uri)
         print("save uri is {}".format(mlflow.get_tracking_uri()))
         mlflow.set_experiment(self.experiment_name)
 
         tags = {"model_name": self.run_name, "release.version": self.version}
 
-        with mlflow.start_run() as run:
+        with mlflow.start_run(nested=True) as run:
+
+            print("save uri is {}".format(mlflow.get_artifact_uri()))
             mlflow.pytorch.log_model(model, self.run_name)
-            mlflow.log_params(NewsTrainer.__dict__)
+            mlflow.log_params(NewsTrain.__dict__)
             mlflow.log_metric("val_acc", best_accuracy)
             mlflow.set_tags(tags)
 
         mlflow.end_run()
 
-        if quantization is True:
-            mlflow.set_experiment(self.experiment_name+'quantization')
+    def train_epoch(
+        self, model, data_loader, loss_fn, optimizer, scheduler, n_examples
+    ):
+        """
+        Description: train을 해주는 모듈
+        ---------
+        Arguments
 
-            tags = {"model_name": self.run_name +
-                    'quantization', "release.version": self.version}
-
-            quantized_model = torch.quantization.quantize_dynamic(
-                model.to("cpu"), {torch.nn.Linear}, dtype=torch.qint16)
-
-            with mlflow.start_run() as run:
-                mlflow.pytorch.log_model(quantized_model, self.run_name)
-                mlflow.log_params(NewsTrainer.__dict__)
-                mlflow.log_metric("val_acc", best_accuracy)
-                mlflow.set_tags(tags)
-
-            mlflow.end_run()
-
-
-def train_epoch(
-    model, data_loader, loss_fn, optimizer, device, scheduler, n_examples
-):
-    """
-    Description: train을 해주는 모듈
-    ---------
-    Arguments
-
-    model: nn.module
-        정의한 모델
-    loss_fn :
-        손실함수
-    tokenizer:
-        앞에서 지정한 tokenizer
-    max_len: int
-        지정한 문장의 최대길이
-    optimizer:
-        사용하고자 하는 optimizer
-    device: device(type='cuda')
-        gpu사용 혹은 cpu사용
-    scheduler: scheduler
-        사용할 scheduler
-    n_examples : int
-        전체 분류기에 사용할 자료의 수
-    ---------
-    Return: train_accuracy, train_loss
-    ---------
-    """
-    print(device)
-    model = model.train().to(device)
-    losses = []
-    correct_predictions = 0
-    for d in data_loader:
-        input_ids = d["input_ids"].to(device)
-        attention_mask = d["attention_mask"].to(device)
-        targets = d["labels"].to(device)
-        outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-        _, preds = torch.max(outputs, dim=1)
-        loss = loss_fn(outputs, targets)
-        correct_predictions += torch.sum(preds == targets)
-        losses.append(loss.item())
-        loss.backward()
-        nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
-        scheduler.step()
-        optimizer.zero_grad()
-    return correct_predictions.double() / n_examples, np.mean(losses)
-
-
-def eval_model(model, data_loader, loss_fn, device, n_examples):
-    """
-    Description: train된 모델을 evaluation을 해주는 모듈
-    ---------
-    Arguments
-    ---------
-    model: nn.module
-        정의한 모델
-    loss_fn : CrossEntropyLoss()
-        손실함수
-    device: device(type='cuda')
-        gpu사용 혹은 cpu사용
-    n_examples : int
-        전체 분류기에 사용할 자료의 수
-    ---------
-    Return: eval_accuracy, eval_loss
-    ---------
-    """
-    model = model.eval().to(device)
-    losses = []
-    correct_predictions = 0
-    with torch.no_grad():
+        model: nn.module
+            정의한 모델
+        loss_fn :
+            손실함수
+        tokenizer:
+            앞에서 지정한 tokenizer
+        max_len: int
+            지정한 문장의 최대길이
+        optimizer:
+            사용하고자 하는 optimizer
+        device: device(type='cuda')
+            gpu사용 혹은 cpu사용
+        scheduler: scheduler
+            사용할 scheduler
+        n_examples : int
+            전체 분류기에 사용할 자료의 수
+        ---------
+        Return: train_accuracy, train_loss
+        ---------
+        """
+        print(self.device)
+        model = model.train().to(self.device)
+        losses = []
+        correct_predictions = 0
         for d in data_loader:
-            input_ids = d["input_ids"].to(device)
-            attention_mask = d["attention_mask"].to(device)
-            targets = d["labels"].to(device)
+            input_ids = d["input_ids"].to(self.device)
+            attention_mask = d["attention_mask"].to(self.device)
+            targets = d["labels"].to(self.device)
             outputs = model(input_ids=input_ids, attention_mask=attention_mask)
             _, preds = torch.max(outputs, dim=1)
             loss = loss_fn(outputs, targets)
             correct_predictions += torch.sum(preds == targets)
             losses.append(loss.item())
-    return correct_predictions.double() / n_examples, np.mean(losses)
+            loss.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
+        return correct_predictions.double() / n_examples, np.mean(losses)
+
+    def eval_model(self, model, data_loader, loss_fn, n_examples):
+        """
+        Description: train된 모델을 evaluation을 해주는 모듈
+        ---------
+        Arguments
+        ---------
+        model: nn.module
+            정의한 모델
+        loss_fn : CrossEntropyLoss()
+            손실함수
+        device: device(type='cuda')
+            gpu사용 혹은 cpu사용
+        n_examples : int
+            전체 분류기에 사용할 자료의 수
+        ---------
+        Return: eval_accuracy, eval_loss
+        ---------
+        """
+        model = model.eval().to(self.device)
+        losses = []
+        correct_predictions = 0
+        with torch.no_grad():
+            for d in data_loader:
+                input_ids = d["input_ids"].to(self.device)
+                attention_mask = d["attention_mask"].to(self.device)
+                targets = d["labels"].to(self.device)
+                outputs = model(
+                    input_ids=input_ids, attention_mask=attention_mask
+                )
+                _, preds = torch.max(outputs, dim=1)
+                loss = loss_fn(outputs, targets)
+                correct_predictions += torch.sum(preds == targets)
+                losses.append(loss.item())
+        return correct_predictions.double() / n_examples, np.mean(losses)

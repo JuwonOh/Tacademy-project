@@ -1,16 +1,60 @@
+import mlflow
 import torch
 from mlflow.tracking import MlflowClient
 from transformers import AutoTokenizer
 
-import mlflow
-
 
 class NewsInference:
-    def __init__(self, pretrained_model_name, model_name, server_uri, current_state):
+    def __init__(
+        self,
+        server_uri,
+        model_name,
+        current_state="Production",
+        pretrained_model_name="google/mobilebert-uncased",
+    ):
         self.pretrained_model_name = pretrained_model_name
-        self.model_name = model_name
         self.server_uri = server_uri
-        self.current_state = current_state
+        self.model_name = model_name
+        self.model = self._load_model(model_name, current_state)
+
+    def _load_model(self, model_name, current_state):
+        """mlflow 저장된 모델에서 되어 있는 모델을 불러오는 함수
+
+        Parameters
+        ---------
+        model_name: str
+            model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
+        tracking_ip: str
+            mlflow sever가 저장되어 있는 ip주소
+        current_state: str
+            가져오고 있는 모델의 상태. ex) Production
+
+        Return
+        ---------
+        model: torch.nn
+            사전에 학습된 pytorch model
+        """
+        loaded_model = None
+
+        try:
+            tracking_server_uri = "{}".format(self.server_uri)
+            mlflow.set_tracking_uri(tracking_server_uri)
+            client = MlflowClient()
+            filter_string = "name = '{}'".format(model_name)
+            result = client.search_model_versions(filter_string)
+
+            for res in result:
+                if res.current_stage == "{}".format(current_state):
+                    deploy_version = res.version
+            model_uri = client.get_model_version_download_uri(
+                self.model_name, deploy_version
+            )
+            loaded_model = mlflow.pytorch.load_model(model_uri)
+
+        except Exception as e:
+            print("NewsInference cannot load model since {}".format(e))
+
+        return loaded_model
 
     def _embedding(self, input_text):
         """input text가 들어오면 모델에 inference할 text를 torch model이 사용할 수 있게, input text를 embedding하는 함수.
@@ -50,40 +94,7 @@ class NewsInference:
 
         return input_ids, attention_mask
 
-    def load_model(self):
-        """mlflow 저장된 모델에서 되어 있는 모델을 불러오는 함수
-
-        Parameters
-        ---------
-        model_name: str
-            model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
-        tracking_ip: str
-            mlflow sever가 저장되어 있는 ip주소
-        current_state: str
-            가져오고 있는 모델의 상태. ex) Production
-
-        Return
-        ---------
-        model: torch.nn
-            사전에 학습된 pytorch model
-        """
-        tracking_server_uri = "{}:5000/".format(self.server_uri)
-        mlflow.set_tracking_uri(tracking_server_uri)
-        client = MlflowClient()
-        filter_string = "name = '{}'".format(self.model_name)
-        result = client.search_model_versions(filter_string)
-
-        for res in result:
-            if res.current_stage == "{}".format(self.current_state):
-                deploy_version = res.version
-        model_uri = client.get_model_version_download_uri(
-            self.model_name, deploy_version
-        )
-        loaded_model = mlflow.pytorch.load_model(model_uri)
-
-        return loaded_model
-
-    def inference(self, loaded_model, input_ids, attention_mask):
+    def _inference(self, model, input_ids, attention_mask):
         """
         pytorch 모델과 embedding된 문장을 사용해서 문장이 긍정적인지, 부정적인지 분류한다.
 
@@ -103,15 +114,13 @@ class NewsInference:
                 문장이 긍정적인지 부정적인지 0 혹은 1로 나타낸 결과
         ---------
         """
-        logits = loaded_model(input_ids, attention_mask)
+        logits = model(input_ids, attention_mask)
         softmax_prob = torch.nn.functional.softmax(logits, dim=1)
         _, prediction = torch.max(softmax_prob, dim=1)
 
         return softmax_prob, prediction
 
-    def inference_sentence(self,
-                           input_text: str
-                           ):
+    def inference_sentence(self, input_text: str):
         """inference 함수를 사용해서, 문장 단위로 문장이 긍정적인지, 부정적인지 보여준다.
 
         Parameters
@@ -137,18 +146,22 @@ class NewsInference:
         ---------
         """
         input_ids, attention_mask = self.embedding(
-            input_text, self.pretrained_model_name)
-        model = self.load_model(
-            self.model_name, self.tracking_ip, self.current_state)
-        class_prob, pred = self.inference(model, input_ids, attention_mask)
+            input_text, self.pretrained_model_name
+        )
+
+        if self.model == None:
+            self.model = self._load_model(self.model_name, self.current_state)
+        else:
+            class_prob, pred = self._inference(
+                self.model, input_ids, attention_mask
+            )
+
         return (
             class_prob.detach().cpu().numpy()[0],
             pred.detach().cpu().numpy()[0],
         )
 
-    def inference_df(self,
-                     preprocessed_data
-                     ):
+    def inference_df(self, preprocessed_data):
         """
         inference 함수를 사용해서, dataframe 단위로 문장이 긍정적인지, 부정적인지 보여준다.
 
