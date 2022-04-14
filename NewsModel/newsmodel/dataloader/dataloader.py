@@ -13,6 +13,7 @@ def load_dataset(tag, data_directory):
         'irrelevant', 'sentiment'로 원하는 데이터를 뽑아낸다.
     ---------
     Return: pandas.Dataframe
+        train_df, valid_df: 이미 나눠져 있는 train, test df가 load 된다.
     ---------
 
     """

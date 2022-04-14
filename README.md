@@ -1,7 +1,7 @@
 <h1> MLOps System Building Project</h1>
-<h2> <img src="image/MLOps-Cycle.png" width="30" height="20"/> 프로젝트 목표 <img src="image/MLOps-Cycle.png" width="30" height="20"/> </h2>
+<h2> <img src="img/MLOps-Cycle.png" width="30" height="20"/> 프로젝트 목표 <img src="img/MLOps-Cycle.png" width="30" height="20"/> </h2>
 
-<h3>: Deep Learing Model을 활용한 MLOps 시스템 구축 </h3>
+<h3>: Deep Learing Model을 활용한 AI engineering 인프라 구축 </h3>
 <br>
 
 [![](https://img.shields.io/static/v1?label=Python&message=3.8&color=0277bd&labelColor=gray&style=flat&logo=data:image/png;base64,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)](https://www.python.org/)
@@ -59,10 +59,12 @@
 <br>
 
 # 1. 프로젝트 소개
-```
-저희는 국제 뉴스기사 데이터와 자연어처리 모델을 활용하여 국가 간 관계를 분석해주는 MLOps 시스템 구축을 목표로 하고 있습니다. 프로젝트에서 중요하게 생각하는 부분을 다음과 같이 정리했습니다.
-```
 
+- 목표: 국제 뉴스기사 데이터와 자연어처리 모델을 활용하여 국가 간 관계를 분석해주는 AI enginnering 인프라 구축
+- 발표 ppt링크 (https://docs.google.com/presentation/d/1FtOoHQrAhw24eZUqTXZcXAJygSP7SJrs/edit?usp=sharing&ouid=107492295937780957856&rtpof=true&sd=true)
+
+<p align="center">
+<img src="img/project_objection.png" width="300" height="100"> 
 <br>
 
 ## 1.1 프로젝트 배경 
@@ -83,7 +85,7 @@
 - 기간: 2019.07.01 ~ 2022.03.22
 
 <p align="center">
-<img src="image/newsource.png" width="800" height="400"> 
+<img src="img/newsource.png" width="800" height="400"> 
 </p>
 
 <br>
@@ -100,7 +102,7 @@
 <br>
 
 <p align="center">
-<img src="image/data_lifecycle.png" width="800" height="250">
+<img src="img/data_lifecycle.png" width="800" height="250">
 </p>
 
 
@@ -120,12 +122,11 @@
 - 모델실험관리 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 실험 관리, 서빙 모델 관리 ( [MLflow](#4-MLflow를-사용한-모델관리) )
 - Ops(Operations) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 서빙, 서버 제공, 관리 ( [GCP](#5-GCP(Google-Cloud-Platform)를-사용한-클라우드-기반-프로젝트-구축) , [GCP-Storage-Bucket](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB) , [Fast API](#6-Fast-API를-사용한-모델-서빙) )
 - 파이프라인, 자동화&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 데이터 수집 및 확인을 위한 데이터 파이프라인 작성 가능
-- CD(Continuous Deploy): 각 요소를 Module 및 Package화 해서 코드 관리, 유닛테스트 실시
 
 <br>
 
 <p align="center">
-   <img src="image/project_structure.png" width="800" height="400">
+   <img src="img/project_structure.png" width="800" height="400">
 </p>
 
 
