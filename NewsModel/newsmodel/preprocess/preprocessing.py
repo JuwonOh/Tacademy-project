@@ -10,13 +10,13 @@ from progressbar import ProgressBar
 from tqdm import tqdm
 
 from .countryset import morethan_two_countries
-from .ner import sentence_to_nerlist
-from .textrank import sort_sentence_importance
+from ._ner import sentence_to_nerlist
+from ._textrank import sort_sentence_importance
 
 
 class NewspieacePreprocess:
-    def __init__(self, tag_filter_value):
-        self._tag_filter_value = tag_filter_value
+    def __init__(self, body_column):
+        self._body_column = body_column
 
     def run_preprocessing(self, data):  # data = news.json or news.csv
         """주어진 data의 특정 컬럼의 이름을 전처리, 결측치 imputation, feature를 이용한 새로운 변수정의, labeling, 필요없는 컬럼삭제 등을
@@ -49,7 +49,7 @@ class NewspieacePreprocess:
             set(chain.from_iterable(map(sentence_to_nerlist, input_corpus)))
         )
 
-    def quasiNER_extractor3(dataframe, nameof_articlebody_column):
+    def quasiNER_extractor3(self, dataframe):
         """기존에 앞에서 작성한 함수를 연결하여 실행하는 코드이다.
 
         Parameters
@@ -62,17 +62,17 @@ class NewspieacePreprocess:
         Return: pandas.dataframe
             전처리가 전부 완료된 데이터 프레임
         """
-        dataframe["lowercase_" + nameof_articlebody_column] = dataframe[
-            nameof_articlebody_column
+        dataframe["lowercase_" + self.body_column] = dataframe[
+            self.body_column
         ]
         quasinerdf_output_list = []
         dataframe["doc_id"] = ""
         except_sentence = []
         for doc_id in ProgressBar(
-            range(len(dataframe["lowercase_" + nameof_articlebody_column]))
+            range(len(dataframe["lowercase_" + self.body_column]))
         ):
             dataframe["doc_id"][doc_id] = doc_id
-            input_text = dataframe["lowercase_" + nameof_articlebody_column][
+            input_text = dataframe["lowercase_" + self.body_column][
                 doc_id
             ]
             try:

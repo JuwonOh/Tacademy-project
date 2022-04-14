@@ -41,8 +41,9 @@ class NewsInference:
             mlflow.set_tracking_uri(tracking_server_uri)
             client = MlflowClient()
             filter_string = "name = '{}'".format(model_name)
+            print(filter_string)
             result = client.search_model_versions(filter_string)
-
+            print(result)
             for res in result:
                 if res.current_stage == "{}".format(current_state):
                     deploy_version = res.version
@@ -145,9 +146,8 @@ class NewsInference:
             문장이 긍정적인지 부정적인지 0 혹은 1로 나타낸 결과
         ---------
         """
-        input_ids, attention_mask = self.embedding(
-            input_text, self.pretrained_model_name
-        )
+        input_ids, attention_mask = self._embedding(
+            input_text)
 
         if self.model == None:
             self.model = self._load_model(self.model_name, self.current_state)

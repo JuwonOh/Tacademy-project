@@ -143,7 +143,7 @@ class NewsTrain:
         for epoch in range(EPOCHS):
             print("start {}th train".format(epoch))
 
-            train_acc, train_loss = self.train_epoch(
+            train_acc, train_loss = self._train_epoch(
                 model,
                 train_dataloader,
                 loss_fn,
@@ -152,7 +152,7 @@ class NewsTrain:
                 len(df_train),
             )
 
-            val_acc, val_loss = self.eval_model(
+            val_acc, val_loss = self._eval_model(
                 model, test_dataloader, loss_fn, len(df_test)
             )
 
@@ -212,7 +212,7 @@ class NewsTrain:
 
         mlflow.end_run()
 
-    def train_epoch(
+    def _train_epoch(
         self, model, data_loader, loss_fn, optimizer, scheduler, n_examples
     ):
         """
@@ -260,7 +260,7 @@ class NewsTrain:
             optimizer.zero_grad()
         return correct_predictions.double() / n_examples, np.mean(losses)
 
-    def eval_model(self, model, data_loader, loss_fn, n_examples):
+    def _eval_model(self, model, data_loader, loss_fn, n_examples):
         """
         Description: train된 모델을 evaluation을 해주는 모듈
         ---------
