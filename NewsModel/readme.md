@@ -40,10 +40,6 @@
   ```
   newsmodel/
   │
-  ├── main.py - preprocess 완료된 파일을 만들고, 그걸 통해서 inference와 train을 담당하는 모듈(실행 가능)
-  │
-  ├── model_run.py: 모델 학습과 실험을 mlflow 내부에서 할때 사용하는 모듈
-  │
   ├── inference/ - mlflow에 production 상태에 있는 모델을 불러와서 inference하는 모듈
   │       ├──inference.py 
   │
@@ -59,11 +55,10 @@
   │       ├── ner.py - ner model을 사용하기 위한 모듈이 있는 파일
   │       ├── countryset.py - 국가쌍을 사용하기 위한 파일
   │
-  ├── data
+  ├── dataloader
   │       ├── dataio.py - json 파일과 xlsx 파일을 불러오는 모듈
   │       ├── dataloader.py - 국가쌍을 사용하기 위한 파일
   │
-  ├── config.py - train과 inference의 설정에 필요한 컬럼과 파일 경로를 지정해준다.
   ├── utils.py - 모델 사전이 들어있는 파일
   │
   ├── setup.py - package를 설치하는 모듈
@@ -71,7 +66,7 @@
   │       ├── newsjson: 크롤링된 json 파일들이 들어가는 폴더 
   │       └── labeled data: 라벨링된 파일이 들어가는 폴더
   ├── saved_model - 학습된 모델이 저장되는 폴더, inference에 사용하는 모듈을 불러오는 폴더
-  │
+  
  
   ```
   
@@ -91,23 +86,53 @@
 ### Train
 
 ```
-import newsmodel 
-from newsmodel.trainer import NewspieceModeling
-modeling = NewspieceModeling()
-modeling.run_bert(pretrained_model_name,batch_size, epoch,random_seed,model_directory,data_directory,is_quantization)
+## model import
+import newsmodel
+from newsmodel.trainer import NewsTrain
+
+## instance setting
+trainer = NewsTrain(server_uri="your_mlflow_server_uri", experiment_name= "mobile_bert", run_name= "mobile_bert1", device="cuda")
+
+## model fitting
+model, quantized_model, best_accuracy = trainer.train_model(batch_size, epoch)
+
+## save mlflow
+mlflow_save(model, best_accuracy)
 ```
 
 ### Inference
 
-- inference_sentence : 문장 단위로 문장을 분석하고 싶을 때 사용하세요.
 ```
+## model import
 import newsmodel
-from newsmodel.inference import inference_sentence
-inference_sentence(input_text: str, PRE_TRAINED_MODEL_NAME, model_name, tracking_ip, current_state)
+
+## instance setting
+inferencer = NewsInference(server_uri= "your_mlflow_server_uri", model_name = "mobile_bert")
+
+## inference_sentence : 문장 단위로 문장을 분석하고 싶을 때 사용하세요.
+inferenced_label = inferencer.inference_sentence(input_text)
+
+## inference_df : 데이터 프레임 단위로 문장을 분석하고 싶을 때 사용하세요.
+inferenced_df = inferencer.inference_df(pandas_df)
 ```
-- inference_df : 데이터 프레임 단위로 문장을 분석하고 싶을 때 사용하세요.
+
+### Preprocessing
+
+- preprocessing은 textrank, ner, 국가쌍을 지원합니다.
+
 ```
+## model import
 import newsmodel
-from newsmodel.inference import inference_df
-inference_df(preprocessed_data, PRE_TRAINED_MODEL_NAME, model_name, tracking_ip, current_state)
+from preprocess.preprocessing import NewspieacePreprocess
+
+## instance setting
+Preprocesor = NewspieacePreprocess(body_column_name = "content")
+
+## run_preprocessing: 전체 데이터 프레임을 전처리할때 사용하세요. 
+preprocessed_df = Preprocesor.run_preprocessing
+
+## morethan_two_countries: 국가쌍을 뽑을때 사용하세요. 
+from preprocess.countryset import morethan_two_countries
+
+morethan_two_countries(input_text)
 ```

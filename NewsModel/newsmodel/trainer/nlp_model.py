@@ -27,11 +27,32 @@ warnings.simplefilter("ignore")
 
 
 class NewsTrain:
+    """기존에 laebling된 데이터를 통해서 모델을 학습하고, 지정된 mlflow server에 저장하는 클래스
+
+    Parameters
+    ---------
+    server_uri: str
+        모델이 저장되어 있는 Mlflow server_uri
+    experiment_name: str
+        사용자가 지정하고자 하는 expermiment의 이름
+    pretrained_model_name: str
+        사용할 Bert model의 이름.
+    random_seed:int
+        사용할 랜덤시드
+    model_directory: str
+        학습시킨 모델이 저장되는 위치
+    data_directory: str
+        학습 데이터가 있는 위치
+    quantization: boolean
+        model 양자화 여부를 선택
+    version: str
+        지정하고자 하는 version의 정보
+    """
+
     def __init__(
         self,
         server_uri,
         experiment_name,
-        run_name,
         device="cuda",
         pretrained_model_name="google/mobilebert-uncased",
         random_seed=42,
@@ -47,7 +68,6 @@ class NewsTrain:
         self.quantization = quantization
         self.server_uri = server_uri
         self.experiment_name = experiment_name
-        self.run_name = run_name
         self.version = version
         self.device = device
 
@@ -56,25 +76,17 @@ class NewsTrain:
 
         Parameters
         -------------
-        pretrained_model_name: str
-            사용할 Bert model의 이름.
         batch_size: int
             모델에서 사용할 배치 사이즈
         epoch: int
             모델이 학습할 횟수
-        random_seed:int
-            사용할 랜덤시드
-        model_directory: str
-            학습시킨 모델이 저장되는 위치
-        data_directory: str
-            학습 데이터가 있는 위치
-        quantization: boolean
-            model 양자화 여부를 선택
 
         Return
         -------------
-        model : Object
+        model : pytorch.nn
             전체 epoch에서 가장 정확도가 높은 torch model을 반환합니다.
+        quantized_model : pytorch.nn
+            train한 모델을 양자화 모델
         best_accuracy: numpy
             train epoch에서 가장 높은 정확도. mlflow의 model metric으로 사용된다.
         """
@@ -195,17 +207,30 @@ class NewsTrain:
                         quantized_model = None
         return model, quantized_model, best_accuracy.item()
 
-    def mlflow_save(self, model, best_accuracy):
+    def mlflow_save(self, run_name, model, best_accuracy):
+        """train_model에서 학습한 모델을 mlflow server에 저장한다.
+
+        Parameters
+        -------------
+        run_name: str
+            사용자가 지정하고자 하는 run의 이름. run은 expermiment의 하위개념이며 expermiment내의 개별 model run을 구분하기 위해 사용한다.
+        model : pytorch.nn
+            전체 epoch에서 가장 정확도가 높은 torch model을 반환합니다.
+        best_accuracy: numpy
+            train epoch에서 가장 높은 정확도. mlflow의 model metric으로 사용된다.
+
+        """
+
         mlflow.set_tracking_uri(self.server_uri)
         print("save uri is {}".format(mlflow.get_tracking_uri()))
         mlflow.set_experiment(self.experiment_name)
 
-        tags = {"model_name": self.run_name, "release.version": self.version}
+        tags = {"model_name": run_name, "release.version": self.version}
 
         with mlflow.start_run(nested=True) as run:
 
             print("save uri is {}".format(mlflow.get_artifact_uri()))
-            mlflow.pytorch.log_model(model, self.run_name)
+            mlflow.pytorch.log_model(model, run_name)
             mlflow.log_params(NewsTrain.__dict__)
             mlflow.log_metric("val_acc", best_accuracy)
             mlflow.set_tags(tags)

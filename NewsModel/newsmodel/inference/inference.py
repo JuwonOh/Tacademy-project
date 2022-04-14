@@ -5,6 +5,23 @@ from transformers import AutoTokenizer
 
 
 class NewsInference:
+    """Mlflow에 올라와 있는 transformer자연어 모델을 기반으로 새로운 문장과 데이터프레임의 관계를 예측합니다.
+
+    Parameters
+    ---------
+    server_uri: str
+            모델이 저장되어 있는 Mlflow server_uri
+    model_name: str
+            model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
+    model: torch.nn
+        사용할 모델로 instance내에 저장된다.  
+    current_state: str
+            가져오고 있는 모델의 상태. ex) Production      
+    PRE_TRAINED_MODEL_NAME: str
+        tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름. 사용할 모델과 PRE_TRAINED_MODEL_NAME의 정보가 맞아야 한다.
+        참고: https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
+    """
+
     def __init__(
         self,
         server_uri,
@@ -24,8 +41,6 @@ class NewsInference:
         ---------
         model_name: str
             model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
-        tracking_ip: str
-            mlflow sever가 저장되어 있는 ip주소
         current_state: str
             가져오고 있는 모델의 상태. ex) Production
 
@@ -64,9 +79,6 @@ class NewsInference:
         ---------
         input_text: str
             사용자가 넣을 문장 정보.
-        PRE_TRAINED_MODEL_NAME: str
-            tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름. 사용할 모델과 PRE_TRAINED_MODEL_NAME의 정보가 맞아야 한다.
-            참고: https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
 
         Return
         ---------
@@ -95,14 +107,12 @@ class NewsInference:
 
         return input_ids, attention_mask
 
-    def _inference(self, model, input_ids, attention_mask):
+    def _inference(self, input_ids, attention_mask):
         """
         pytorch 모델과 embedding된 문장을 사용해서 문장이 긍정적인지, 부정적인지 분류한다.
 
         Parameters
         ---------
-        model: torch.nn
-            사전에 학습된 pytorch model
         input_ids: tensor
             encoding된 단어들이 숫자로 표현된 결과
         attention_mask: tensor
@@ -115,7 +125,7 @@ class NewsInference:
                 문장이 긍정적인지 부정적인지 0 혹은 1로 나타낸 결과
         ---------
         """
-        logits = model(input_ids, attention_mask)
+        logits = self.model(input_ids, attention_mask)
         softmax_prob = torch.nn.functional.softmax(logits, dim=1)
         _, prediction = torch.max(softmax_prob, dim=1)
 
@@ -128,15 +138,6 @@ class NewsInference:
         ---------
         input_text: str
             모델에 사용하고자 하는 문장
-        PRE_TRAINED_MODEL_NAME: str
-            tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름. 사용할 모델과 PRE_TRAINED_MODEL_NAME의 정보가 맞아야 한다.
-            참고: https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
-        model_name: str
-            model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
-        tracking_ip: str
-            mlflow sever가 저장되어 있는 ip주소
-        current_state: str
-            가져오고 있는 모델의 상태. ex) Production
 
         Returns
         ---------
@@ -151,10 +152,7 @@ class NewsInference:
 
         if self.model == None:
             self.model = self._load_model(self.model_name, self.current_state)
-        else:
-            class_prob, pred = self._inference(
-                self.model, input_ids, attention_mask
-            )
+        class_prob, pred = self._inference(input_ids, attention_mask)
 
         return (
             class_prob.detach().cpu().numpy()[0],
@@ -167,24 +165,13 @@ class NewsInference:
 
         Parameters
         ---------
-        input_text: str
-            모델에 사용하고자 하는 문장
-        PRE_TRAINED_MODEL_NAME: str
-            tokenizer가 사용할 PRE_TRAINED_MODEL_NAME의 이름. 사용할 모델과 PRE_TRAINED_MODEL_NAME의 정보가 맞아야 한다.
-            참고: https://huggingface.co/transformers/v3.0.2/model_doc/auto.html
-        model_name: str
-            model runs에 들어갈 model 이름. mlflow server에서 사용자가 지정한 model_runs의 이름
-        tracking_ip: str
-            mlflow sever가 저장되어 있는 ip주소
-        current_state: str
-            가져오고 있는 모델의 상태. ex) Production
+        preprocessed_data: pandas.dataframe
+            모델에 사용하고자 하는 데이터 프레임
 
         Return:
         ---------
-        softmax_prob: tensor
-            문장이 긍정적인지 부정적인지 확률로 나타낸 결과
-        prediction: tensor
-            문장이 긍정적인지 부정적인지 0 혹은 1로 나타낸 결과
+        preprocessed_data: pandas.dataframe
+            기존 데이터프레임에서 class_prob와 pred labedl column이 추가된 데이터프레임이 나온다.
         """
         preprocessed_data["class_prob"] = ""
         preprocessed_data["pred"] = ""
@@ -193,10 +180,6 @@ class NewsInference:
                 preprocessed_data["class_prob"][i],
                 preprocessed_data["pred"][i],
             ) = self.inference_sentence(
-                preprocessed_data["input_text"][i],
-                self.pretrained_model_name,
-                self.model_name,
-                self.server_uri,
-                self.current_state,
+                preprocessed_data["input_text"][i]
             )
         return preprocessed_data

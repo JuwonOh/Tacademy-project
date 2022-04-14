@@ -15,6 +15,14 @@ from ._textrank import sort_sentence_importance
 
 
 class NewspieacePreprocess:
+    """새로이 크롤링된 뉴스 기사들을 전처리해주는 모듈
+
+    Parameters
+    ---------
+    body_column: srt
+        전처리 해야하는 데이터의 column이 어디인지 설정한다.
+    """
+
     def __init__(self, body_column):
         self._body_column = body_column
 
@@ -59,7 +67,7 @@ class NewspieacePreprocess:
         nameof_articlebody_column: str
             데이터 프레임의 칼럼 이름을 넣는다.
         ---------
-        Return: pandas.dataframe
+        Return: 
             전처리가 전부 완료된 데이터 프레임
         """
         dataframe["lowercase_" + self.body_column] = dataframe[
