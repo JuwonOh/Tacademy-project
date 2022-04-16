@@ -1,7 +1,7 @@
-<h1> MLOps System Building Project</h1>
+<h1> AI Engineering Infra Building Project</h1>
 <h2> <img src="img/MLOps-Cycle.png" width="30" height="20"/> 프로젝트 목표 <img src="img/MLOps-Cycle.png" width="30" height="20"/> </h2>
 
-<h3>: Deep Learing Model을 활용한 AI engineering 인프라 구축 </h3>
+<h3>: Deep Learing Model을 활용한 AI 엔지니어링 인프라 구축 </h3>
 <br>
 
 [![](https://img.shields.io/static/v1?label=Python&message=3.8&color=0277bd&labelColor=gray&style=flat&logo=data:image/png;base64,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)](https://www.python.org/)
@@ -21,13 +21,15 @@
 
 <br>
 
-- [2. MLOps란?](#2-MLOps란?)
-   - [2.1 MLOps를 선택한 이유](#21-MLOps를-선택한-이유)
+- [2. AI 엔지니어링?](#2-ai-%EC%97%94%EC%A7%80%EB%8B%88%EC%96%B4%EB%A7%81)
+   - [2.1 AI 엔지니어링을 도입한 이유](#21-AI-엔지니어링을-도입한-이유)
+   - [2.2 AI 엔지니어링 구성](#22-AI-엔지니어링-구성)
 
 <br>
 
-- [3. 모델링 (NLP)](#3-모델링-(NLP))
-   - [3.1 Features](#31-Features)
+- [3. 모델링(NLP)](#3-%EB%AA%A8%EB%8D%B8%EB%A7%81nlp)
+   - [3.1 모델 선택 기준](#31-모델-선택-기준)
+   - [3.2 실험 결과](#32-실험-결과)
 
 <br>
 
@@ -37,10 +39,10 @@
 
 <br>
 
-- [5. GCP(Google Cloud Platform)를 사용한 클라우드 기반 프로젝트 구축](#5-GCP(Google-Cloud-Platform)를-사용한-클라우드-기반-프로젝트-구축)
-   - [5.1 Google Compute Engine (Instance-Ubuntu)](#51-Google-Compute-Engine-(Instance-Ubuntu))
-   - [5.2 Google Storage Bucket(저장소) & Postgresql DB](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB)
-   - [5.3 Docker Container](#53-Docker-Conatiner)
+- [5. GCP(Google Cloud Platform)를 사용한 클라우드 기반 프로젝트 구축](#5-gcpgoogle-cloud-platform%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%9C-%ED%81%B4%EB%9D%BC%EC%9A%B0%EB%93%9C-%EA%B8%B0%EB%B0%98-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B5%AC%EC%B6%95)
+   - [5.1 Google Compute Engine (Instance-Ubuntu)](#51-google-compute-engine-instance-ubuntu)
+   - [5.2 Google Storage Bucket(저장소) & Postgresql DB](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db)
+   - [5.3 Docker Container](#53-docker-container)
 
 <br>
 
@@ -60,11 +62,12 @@
 
 # 1. 프로젝트 소개
 
-- 목표: 국제 뉴스기사 데이터와 자연어처리 모델을 활용하여 국가 간 관계를 분석해주는 AI enginnering 인프라 구축
-- 발표 ppt링크 (https://docs.google.com/presentation/d/1FtOoHQrAhw24eZUqTXZcXAJygSP7SJrs/edit?usp=sharing&ouid=107492295937780957856&rtpof=true&sd=true)
+- 저희는 국제 뉴스기사 데이터와 자연어처리 모델을 활용하여 국가 간 관계를 분석해주는 AI 엔지니어링 인프라 구축 프로젝트를 진행했습니다.
+- PPT 자료: https://docs.google.com/presentation/d/1FtOoHQrAhw24eZUqTXZcXAJygSP7SJrs/edit?usp=sharing&ouid=107492295937780957856&rtpof=true&sd=true
 
 <p align="center">
-<img src="img/project_objection.png" width="300" height="100"> 
+<img src="img/project_objection.png" width="300" height="100">
+</p>
 <br>
 
 ## 1.1 프로젝트 배경 
@@ -76,7 +79,7 @@
 
 ## 1.2 프로젝트 목표
  - 자연어처리 모델을 사용한 국제정치 데이터 분석
- - MLOps를 통한 서비스 구축 및 자동화(CI/CD) - 데이터 수집, 모델 학습 및 서빙까지의 자동화
+ - AI 엔지니어링을 통한 서비스 구축 및 자동화(CI/CD) - 데이터 수집, 모델 학습 및 서빙까지의 자동화
 
 <br>
 
@@ -115,10 +118,14 @@
 <br>
 <br>
 
-# 2. MLOps란?
+# 2. AI 엔지니어링?
 
-## 2.1 MLOps를 선택한 이유
-- 문제 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 데이터 수집 횟수, 모델 실험, 모델 서빙, 코드와 인프라 관리에서의 어려움
+## 2.1 AI 엔지니어링을 도입한 이유
+: 데이터 수집 횟수, 모델 실험, 모델 서빙, 코드와 인프라 관리에서의 어려움
+
+<br>
+
+## 2.2 AI 엔지니어링 구성
 - 모델실험관리 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 실험 관리, 서빙 모델 관리 ( [MLflow](#4-MLflow를-사용한-모델관리) )
 - Ops(Operations) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 서빙, 서버 제공, 관리 ( [GCP](#5-GCP(Google-Cloud-Platform)를-사용한-클라우드-기반-프로젝트-구축) , [GCP-Storage-Bucket](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB) , [Fast API](#6-Fast-API를-사용한-모델-서빙) )
 - 파이프라인, 자동화&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 데이터 수집 및 확인을 위한 데이터 파이프라인 작성 가능
@@ -135,22 +142,24 @@
 <br>
 <br>
 
-# 3. 모델링 (NLP)
+# 3. 모델링(NLP)
 
-## 3.1 Features
-- 모델 선택: 여러 모델을 실험하여, 가장 성능이 좋은 모델을 선정
-- 모델 선택 기준
-   #### &nbsp;&nbsp;&nbsp; 1) 성능
-   #### &nbsp;&nbsp;&nbsp; 2) 용량
-   #### &nbsp;&nbsp;&nbsp; 3) 모델
-   #### &nbsp;&nbsp;&nbsp; 4) 양자화 이후 성능 및 용량
+## 3.1 모델 선택 기준
+   #### &nbsp;&nbsp;&nbsp; 1) 성능: Accuracy, F1-Score 값이 높은 모델
+   #### &nbsp;&nbsp;&nbsp; 2) 용량: 모델 서빙에서 서버의 메모리와 성능에 더 적은 부하를 주는 모델
+   #### &nbsp;&nbsp;&nbsp; 3) 양자화 이후 성능 및 용량: 서빙을 위한 양자화 적용
 
-   | 모델 이름  | accuracy | F1 score | 용량   | quantization 정확도 | quantization  용량 |
-   | ---------- | -------- | -------- | ------ | ------------------- | ------------------ |
+<br>
+
+## 3.2 실험 결과
+- 후보 모델: MobileBERT & ELECTRA
+
+   | 모델 이름   | accuracy | F1 score | 용량   | quantization 정확도 | quantization  용량 |
+   |:----------:|:--------:|:--------:|:------:|:-------------------:|:------------------:|
    | BERT       | 61 %     | 0.59     | 421 mb | 55%                 | 104mb              |
    | Electra    | 64 %     | 0.63     | 124 mb | 60%                 | 61mb               |
    | MobileBert | 70 %     | 0.67     | 94mb   | 61%                 | 31mb               |
-- **현재 사용하고 있는 주요 모델은 MobileBert**이며, Defalt 모델로 사용하고 있습니다.
+- **현재 사용하고 있는 주요 모델은 MobileBert**이며, 서빙 모델로 사용하고 있습니다.
 - 모델에 대한 자세한 내용은 pypi link (https://pypi.org/project/newsmodel/) 에서 보실 수 있습니다.
 
 
@@ -187,7 +196,7 @@
 
 # 5. GCP(Google Cloud Platform)를 사용한 클라우드 기반 프로젝트 구축
 
-## 5.1 Google Compute Engine (Instance-Ubuntu)
+## 5.1 Google Compute Engine (Instance->Ubuntu)
 - 내용: 저희 프로젝트에서는 인스턴스(Ubuntu)를 사용하여 [MLflow Server 연결](#42-Usage), [Docker를 활용한 DB 생성](#53-Docker-Container), [데이터 관리](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB) 등을 하고 있습니다.
 - 사용 이유: GCE(Google Compute Engine)에서 가상 머신(VM)이 표준 이미지 또는 사용자가 만든 커스텀 이미지로부터 런칭이 가능하기 때문에 쉽게 생성하고 사용할 수 있습니다.
 
