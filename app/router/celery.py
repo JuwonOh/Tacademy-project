@@ -5,6 +5,10 @@ from worker.worker import prepared_nlp_working
 
 router = APIRouter(prefix="/api_with_celery")
 
+tag_metadata = [
+    {'name':"Inference",
+    "description" : "Analyzing relationship between two countries"}
+]
 
 @router.get("/")
 def test():
@@ -21,7 +25,7 @@ def test():
     return "API is running"
 
 
-@router.post("/v1/inference")
+@router.post("/v1/inference", tags=['Inference'])
 def predict(information: NLPText):
     """
     입력된 값을 토대로 예측해주는 API주소

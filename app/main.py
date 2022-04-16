@@ -15,11 +15,6 @@ description ="""
 국제 뉴스기사 데이터와 자연어처리 모델을 활용하여 국가 간 관계 분석을 할 수 있는 API
 """
 
-tag_metadata = [
-    {'name':"Inference",
-    "description" : "Analyzing relationship between two countries"}
-]
-
 app = FastAPI(
         title="NewsModel",
         description = description,
