@@ -1,13 +1,10 @@
 from typing import Dict
 import numpy as np
 import pandas as pd
-import torch
 from schema import NLPText
 from celery import Celery, Task
-import newsmodel
-from newsmodel.inference import embedding, load_model, inference, inference_sentence
-from newsmodel.preprocess import NewspieacePreprocess, morethan_two_countries
-from worker.predict import predicting
+from newsmodel.inference.inference import NewsInference
+from newsmodel.preprocess.countryset import morethan_two_countries
 
 app = Celery(
     "my_tasks",
@@ -22,38 +19,14 @@ class SimplePredict(Task):
         self.model = None
     def __call__(self, *args, **kwargs):
         if not self.model:
-            self.model = load_model(self.model_name, self.ip_params)
+            self.inferencer = NewsInference(server_uri="your_mlflow_server_uri", model_name="mobile_bert")
+            self.model = self.inferencer._load_model("mobile_bert","Production")
             return self.run(*args, **kwargs)
 
-
-@app.task
-def nlp_working(text: Dict):
-    """
-    값(문장, 모델) 입력 시 분석해주는 Task.
-        Parameters
-        ----------
-        text : Dict
-            API router로부터 NLPText 클래스에 해당하는 입력값을 dictionary 형태로 받아온다.
-        Returns
-        -------
-        result : Dict
-            값은 class_prob, pred, result 값을 가지고 있는 dictionary 형태로 반환한다.
-    """
-    result = predicting(
-        text['input_text'],
-        text['pretrained_model_name'],
-        text['model_name'],
-        text['ip_param']
-    )
-    return result
-
-    
 @app.task(
     ignore_result=False,
     bind=True,
     base=SimplePredict,
-    model_name = "mobilebert",
-    ip_params = "http://34.64.73.79"
 )
 def prepared_nlp_working(self, text: Dict):
     
@@ -70,10 +43,7 @@ def prepared_nlp_working(self, text: Dict):
     """
     valid, related_nation = morethan_two_countries(text['input_text'])
     if valid:
-        input_ids, attention_mask = embedding(text['input_text'], text['pretrained_model_name'])
-        class_prob, pred = inference.inference(self.model, input_ids, attention_mask)
-        class_prob = class_prob.detach().cpu().numpy()[0]
-        pred = pred.detach().cpu().numpy()[0]
+        class_prob, pred = self.inferencer.inference(text['input_text'])
         relation_dict = {"0": "나쁘", "1": "좋"}
         relation = relation_dict[str(pred)]
         answer = (
@@ -83,10 +53,8 @@ def prepared_nlp_working(self, text: Dict):
         )
         result = {'class_prob':class_prob.tolist(), 'pred':int(pred), 'answer':answer}
     else:
-        answer = "이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요
-."
-        print(answer)
+        answer = "이 문장은 국가간 관계를 살펴보기에 맞는 문장이 아닙니다. 국가가 2개 언급된 다른 문장을 넣어주세요."
         class_prob, pred = None, None
-        result = {'class_prob':'nothing', 'pred':'nothing', 'answer':answer}
+        result = {'answer':answer}
 
     return result
