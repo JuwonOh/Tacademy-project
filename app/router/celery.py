@@ -21,7 +21,7 @@ def test():
     return "API is running"
 
 
-@router.post("/predict")
+@router.post("/v1/inference")
 def predict(information: NLPText):
     """
     입력된 값을 토대로 예측해주는 API주소

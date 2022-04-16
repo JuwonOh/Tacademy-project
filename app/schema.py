@@ -15,14 +15,7 @@ class NLPText(BaseModel):
     pretrained_model_name : str
         Default value = 'google/mobilebert-uncased'
         모델 입력 전 임베딩 단계에서 필요한 모델의 이름
-    model_name : str
-        Mlflow에 존재하는 Production Stage의 모델 이름
-    
-    ip_param : str
-        Default value = "http://34.64.73.79:5000/"
-        API의 서버 주소
+
     """
     input_text: str
     pretrained_model_name: str = "google/mobilebert-uncased"
-    model_name: str
-    ip_param: str = "http://34.64.73.79:5000/"
