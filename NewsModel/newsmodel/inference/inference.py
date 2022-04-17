@@ -33,6 +33,7 @@ class NewsInference:
         self.server_uri = server_uri
         self.model_name = model_name
         self.model = self._load_model(model_name, current_state)
+        self.current_state = current_state
 
     def _load_model(self, model_name, current_state):
         """mlflow 저장된 모델에서 되어 있는 모델을 불러오는 함수
@@ -69,6 +70,7 @@ class NewsInference:
 
         except Exception as e:
             print("NewsInference cannot load model since {}".format(e))
+            raise
 
         return loaded_model
 
