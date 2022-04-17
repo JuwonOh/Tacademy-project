@@ -247,6 +247,8 @@ class NewsTrain:
 
         model: nn.module
             정의한 모델
+        data_loader
+            torch data_loader
         loss_fn :
             손실함수
         tokenizer:
@@ -293,6 +295,8 @@ class NewsTrain:
         ---------
         model: nn.module
             정의한 모델
+        data_loader: 
+            torch data_loader
         loss_fn : CrossEntropyLoss()
             손실함수
         device: device(type='cuda')

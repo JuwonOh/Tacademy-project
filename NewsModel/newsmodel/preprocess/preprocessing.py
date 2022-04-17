@@ -4,10 +4,7 @@ from itertools import chain
 
 import numpy as np
 import pandas as pd
-from nltk import tokenize
-from nltk.tokenize import sent_tokenize, word_tokenize
 from progressbar import ProgressBar
-from tqdm import tqdm
 
 from .countryset import morethan_two_countries
 from ._ner import sentence_to_nerlist
