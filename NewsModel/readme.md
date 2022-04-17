@@ -30,9 +30,6 @@
 - 사용하고자 하는 model을 지정하기 위해서는 저장된 mlflow server에 있는 model_name과 current stage를 지정해줘야 합니다.
 - 주로 사용하고 있는 모델은 MobileBert입니다.
 
-### 경로설정
-- config에 셋팅된 경로에서 데이터를 불러오고, 모델을 저장합니다. 
-
 ## Data
 - 미국, 중국, 러시아, 일본, 한국, 인도의 9개 언론사와 8개 국가기관의 기사, 문서
 
@@ -85,19 +82,21 @@
 
 ### Train
 
+- Newsmodel.trainer
+
 ```
 ## model import
 import newsmodel
 from newsmodel.trainer import NewsTrain
 
 ## instance setting
-trainer = NewsTrain(server_uri="your_mlflow_server_uri", experiment_name= "mobile_bert", run_name= "mobile_bert1", device="cuda")
+Trainer = NewsTrain(server_uri="your_mlflow_server_uri", experiment_name= "mobile_bert", run_name= "mobile_bert1", device="cuda")
 
 ## model fitting
-model, quantized_model, best_accuracy = trainer.train_model(batch_size, epoch)
+model, quantized_model, best_accuracy = Trainer.train_model(batch_size, epoch)
 
 ## save mlflow
-mlflow_save(model, best_accuracy)
+Trainer.mlflow_save(model, best_accuracy)
 ```
 
 ### Inference
@@ -105,21 +104,23 @@ mlflow_save(model, best_accuracy)
 ```
 ## model import
 import newsmodel
+from newsmodel.inference import NewsInference
 
 ## instance setting
-inferencer = NewsInference(server_uri= "your_mlflow_server_uri", model_name = "mobile_bert")
+Inferencer = NewsInference(server_uri= "your_mlflow_server_uri", model_name = "mobile_bert")
 
 ## inference_sentence : 문장 단위로 문장을 분석하고 싶을 때 사용하세요.
-inferenced_label = inferencer.inference_sentence(input_text)
+inferenced_label = Inferencer.inference_sentence(input_text)
 
 ## inference_df : 데이터 프레임 단위로 문장을 분석하고 싶을 때 사용하세요.
-inferenced_df = inferencer.inference_df(pandas_df)
+inferenced_df = Inferencer.inference_df(pandas_df)
 ```
 
 ### Preprocessing
 
-- preprocessing은 textrank, ner, 국가쌍을 지원합니다.
-
+- preprocessing은 textrank, ner, 국가쌍 유무 확인을 지원합니다.
+  - run_preprocessing: 데이터 프레임 단위에서 textrank, ner, 국가쌍 유무 확인을 제공하는 method입니다.
+  - morethan_two_countries: 문장내에서 국가쌍의 유무를 알려주는 함수입니다.
 ```
 ## model import
 import newsmodel

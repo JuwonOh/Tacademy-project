@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 import torch
 import transformers
-from dataloader.dataloader import SentimentDataset, load_dataset
-from model.model import SentimentClassifier
+from ..dataloader.dataloader import SentimentDataset, load_dataset
+from ..model.model import SentimentClassifier
 from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
@@ -247,6 +247,8 @@ class NewsTrain:
 
         model: nn.module
             정의한 모델
+        data_loader
+            torch data_loader
         loss_fn :
             손실함수
         tokenizer:
@@ -293,6 +295,8 @@ class NewsTrain:
         ---------
         model: nn.module
             정의한 모델
+        data_loader: 
+            torch data_loader
         loss_fn : CrossEntropyLoss()
             손실함수
         device: device(type='cuda')
