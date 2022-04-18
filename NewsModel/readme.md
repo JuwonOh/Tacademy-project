@@ -90,20 +90,19 @@ import newsmodel
 from newsmodel.trainer import NewsTrain
 
 ## instance setting
-Trainer = NewsTrain(server_uri="your_mlflow_server_uri", experiment_name= "mobile_bert", run_name= "mobile_bert1", device="cuda")
+Trainer = NewsTrain(server_uri="your_mlflow_server_uri", experiment_name= "mobile_bert", device="cuda")
 
 ## model fitting
 model, quantized_model, best_accuracy = Trainer.train_model(batch_size, epoch)
 
 ## save mlflow
-Trainer.mlflow_save(model, best_accuracy)
+Trainer.mlflow_save(run_name, model, best_accuracy)
 ```
 
 ### Inference
 
 ```
 ## model import
-import newsmodel
 from newsmodel.inference import NewsInference
 
 ## instance setting
@@ -124,7 +123,7 @@ inferenced_df = Inferencer.inference_df(pandas_df)
 ```
 ## model import
 import newsmodel
-from preprocess.preprocessing import NewspieacePreprocess
+from newsmodel.preprocess import NewspieacePreprocess
 
 ## instance setting
 Preprocesor = NewspieacePreprocess(body_column_name = "content")
@@ -133,7 +132,7 @@ Preprocesor = NewspieacePreprocess(body_column_name = "content")
 preprocessed_df = Preprocesor.run_preprocessing
 
 ## morethan_two_countries: 국가쌍을 뽑을때 사용하세요. 
-from preprocess.countryset import morethan_two_countries
+from newsmodel.preprocess import morethan_two_countries
 
 morethan_two_countries(input_text)
 ```

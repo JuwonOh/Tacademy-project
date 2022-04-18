@@ -7,10 +7,9 @@ with open("./readme.md", "r", encoding="UTF8") as fh:
     fh.close()
 
 
-
 setup(
     name="newsmodel",
-    version="0.26",
+    version="0.27",
     description="Tacademy project의 newsmodel을 학습하고 실험하기 위한 패키지 입니다.",
     long_description=long_description,
     long_description_content_type="text/markdown",
