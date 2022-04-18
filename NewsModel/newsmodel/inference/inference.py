@@ -33,7 +33,6 @@ class NewsInference:
         self.server_uri = server_uri
         self.model_name = model_name
         self.model = self._load_model(model_name, current_state)
-        self.current_state = current_state
 
     def _load_model(self, model_name, current_state):
         """mlflow 저장된 모델에서 되어 있는 모델을 불러오는 함수
@@ -66,6 +65,7 @@ class NewsInference:
             model_uri = client.get_model_version_download_uri(
                 self.model_name, deploy_version
             )
+            print("Model uri is {}".format(model_uri))
             loaded_model = mlflow.pytorch.load_model(model_uri)
 
         except Exception as e:

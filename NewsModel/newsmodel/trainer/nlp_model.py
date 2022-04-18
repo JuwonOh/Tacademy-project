@@ -9,7 +9,6 @@ import mlflow
 import numpy as np
 import pandas as pd
 import torch
-import transformers
 from ..dataloader.dataloader import SentimentDataset, load_dataset
 from ..model.model import SentimentClassifier
 from sklearn.model_selection import train_test_split
@@ -93,25 +92,20 @@ class NewsTrain:
         if not os.path.exists(self.model_directory):
             os.makedirs(self.model_directory)
 
-        # random seed 지정
         np.random.seed(self.random_seed)
         torch.manual_seed(self.random_seed)
 
         tokenizer = AutoTokenizer.from_pretrained(
-            # , return_dict=False  ## 이 부분이 모델에 따라 달라짐.
             self.pretrained_model_name
         )
-        # batch size
-        # 원 자료에서 label이 있는 column
+
         tag = "sentiment"
 
-        # data split
         train_df, valid_df = load_dataset(tag, self.data_directory)
         df_train, df_test = train_test_split(
             train_df, test_size=0.2, random_state=self.random_seed
         )
 
-        # load dataset
         train_dataset = SentimentDataset(
             df_train.sentence.values,
             df_train.sentiment.values,
@@ -131,26 +125,19 @@ class NewsTrain:
         test_dataloader = DataLoader(
             test_dataset, batch_size=batch_size, num_workers=0
         )
-        # torch dataloader 지정.
-        # data = next(iter(train_dataloader))
 
-        # 지정한 classifier에 label의 수와 모델이름을 넣는다.
         model = SentimentClassifier(self.pretrained_model_name, 2)
         model = model.to(self.device)
 
-        # gpu cpu와 메모리를 비움. 실 사용에서 주의
-
-        EPOCHS = epoch  # 바꿔야할 파라미터
+        EPOCHS = epoch
         optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
         total_steps = len(train_dataloader) * EPOCHS
         scheduler = get_linear_schedule_with_warmup(
             optimizer, num_warmup_steps=10, num_training_steps=total_steps
         )
         loss_fn = nn.CrossEntropyLoss().to(self.device)
-        # mlflow.pytorch.autolog() autolog를 넣어야 하나
         history = defaultdict(list)
 
-        # 실제 학습 코드
         best_accuracy = 0
         for epoch in range(EPOCHS):
             print("start {}th train".format(epoch))
