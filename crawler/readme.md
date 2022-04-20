@@ -3,7 +3,6 @@
    국가간 관계를 분석하기 위한 자료들을 수집합니다.
 - CNN, Newyorktimes, Wahsingtonpost, Hindustantimes의 크롤러는 twitter를 크롤링하는 twint를 통해서 만들었습니다.
 - 이 폴더는 Airflow Pipeline으로 통합될 예정입니다.
-<br>
 
 # Data
 
@@ -11,7 +10,6 @@
 - 크롤러는 "Newssource_scraper" 형태로 저장되어 있습니다.
  <img src="../img/newsource.png" width="800" height="400"> 
 
-<br>
 
 # Folder structure
 
@@ -31,7 +29,6 @@
   ├── test.ipynb - 개별 크롤러의 모듈이 작동하는지 시험하는 노트북 파일  
 ```
 
-<br>
 
 # Usage
 
