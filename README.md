@@ -87,7 +87,7 @@
 
 ## 1.2.1 모델 서빙 시연 영상
 <div align="center">
-  <video src="img/API Serving Video.mp4" data-canonical-src="img/API Serving Video.mp4" controls="controls" muted="muted" style="max-height:590px;">
+  <video src="img/API Serving Video.mp4" data-canonical-src="img/API Serving Video.mp4" controls="controls" muted="muted" style="max-height:400px;">
   </video>
 </div>
 
@@ -98,7 +98,7 @@
 
 
 ```
-  Root
+      Root
 	│
 	├── NewsModel : 수집된 뉴스기사를 전처리하고 라벨링된 자료를 기반으로 모델을 학습시켜, 학습된 모델로 새로운 기사의 감정을 예측하는 패키지
 	│
@@ -182,10 +182,8 @@
 <br>
 
 ## 3.2 실험 결과
-- 후보 모델
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; 1\) Electra
-<br>
+- 후보 모델 <br>
+&nbsp;&nbsp;&nbsp;&nbsp; 1\) Electra <br>
 &nbsp;&nbsp;&nbsp;&nbsp; 2\) MobileBert
 
    | 모델 이름   | accuracy | F1 score | 용량   | quantization 정확도 | quantization  용량 |
@@ -239,36 +237,22 @@
 # 5. GCP(Google Cloud Platform)를 사용한 클라우드 기반 프로젝트 구축
 
 ## 5.1 Google Compute Engine ( Instance -> Ubuntu )
-- 내용&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 저희 프로젝트에서는 인스턴스(Ubuntu)를 사용하여 [MLflow Server 연결](#42-Usage), [Docker를 활용한 DB 생성](#53-Docker-Container),
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[데이터 관리](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db) 등을 하고 있습니다.
-- 사용 이유&nbsp;: GCE(Google Compute Engine)에서 가상 머신(VM)이 표준 이미지 또는 사용자가 만든 커스텀
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 이미지로부터 런칭이 가능하기 때문에 쉽게 생성하고 사용할 수 있습니다.
+- 내용: 저희 프로젝트에서는 인스턴스(Ubuntu)를 사용하여 [MLflow Server 연결](#42-Usage), [Docker를 활용한 DB 생성](#53-Docker-Container), [데이터 관리](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db) 등을 하고 있습니다.
+- 사용 이유: GCE(Google Compute Engine)에서 가상 머신(VM)이 표준 이미지 또는 사용자가 만든 커스텀 이미지로부터 런칭이 가능하기 때문에 쉽게 생성하고 사용할 수 있습니다.
 
 <br>
 
 ## 5.2 Google Storage Bucket(저장소) & Postgresql DB
 
-- 내용&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 학습시킨 모델들은 프로젝트(Experiment) 아래 실험단위(Run)로 저장소(GCP-Storage-Bucket)에, 실험에
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;대한 정보(성능평가지표, 파라미터, 모델버전)들은 Postgresql DB에 저장하여 관리하고 있습니다.
-- 사용 이유&nbsp;: Local에 Artifacts(Model, Image, Data 파일)를 저장하게 되면, Local의 성능저하 및 보안상의 이슈
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;때문에 Local이 아닌 데이터 저장소를 따로 두었고 저희는 데이터 저장소로 GCP-Storage-Bucket와 Postgresql DB로
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;선정하였습니다.
+- 내용: 학습시킨 모델들은 프로젝트(Experiment) 아래 실험단위(Run)로 저장소(GCP-Storage-Bucket)에, 실험에 대한 정보(성능평가지표, 파라미터, 모델버전)들은 Postgresql DB에 저장하여 관리하고 있습니다.
+- 사용 이유&nbsp;: Local에 Artifacts(Model, Image, Data 파일)를 저장하게 되면, Local의 성능저하 및 보안상의 이슈 때문에 Local이 아닌 데이터 저장소를 따로 두었고 저희는 데이터 저장소로 GCP-Storage-Bucket와 Postgresql DB로 선정하였습니다.
 
 <br>
 
 ## 5.3 Docker Container
 
-- 내용&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: GCE를 통해 생성한 인스턴스(Ubuntu)에 Docker를 설치하고, Container 기술을 이용하여 [Postgresql DB](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db)를
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;띄웠습니다.
-- 사용 이유&nbsp;: 코드를 더 빨리 전달하고, 애플리케이션 운영을 표준화하고, 코드를 원활하게 이동하고, 리소스 사용률
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;을 높여 비용을 절감할 수 있었습니다.
+- 내용: GCE를 통해 생성한 인스턴스(Ubuntu)에 Docker를 설치하고, Container 기술을 이용하여 [Postgresql DB](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db)를 띄웠습니다.
+- 사용 이유: 코드를 더 빨리 전달하고, 애플리케이션 운영을 표준화하고, 코드를 원활하게 이동하고, 리소스 사용률을 높여 비용을 절감할 수 있었습니다.
 
 <br>
 <br>
