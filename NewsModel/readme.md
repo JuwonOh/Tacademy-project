@@ -3,9 +3,12 @@
    국가간 관계를 학습하고 예측하기 위해 만들어진 패키지입니다.
 - 모델을 학습하고, 학습된 모델을 불러와서 새로운 데이터를 예측합니다.
 
-## Features
 
-### Train feature
+# Features
+
+## Train feature
+
+
 - labeling되어 있는 데이터를 기반으로 모델을 학습합니다.
 - 현재는 3가지 pre-trained model을 지원합니다. 
   - 지원하고 있는 모델은 다음과 같습니다. "bert", "mobilebert", "Electra"
@@ -21,30 +24,31 @@
 
 - 현재 사용하고 있는 주요한 model은 MobileBert이며, defalt 모델로 사용하고 있습니다.
 
-### Inference feature
-- 15개의 news source에서 수집한 데이터와 기존에 학습한 모델을 사용합니다.
-- Inference에서는 다음과 같은 문제를 고려했고, 문제를 해결하기 위해 전처리 방법을 사용했습니다. 
+## Inference feature
+
+
+- 기존에 학습한 모델을 사용하여 새로이 수집한 데이터와 api사용자가 입력한 문장의 관계를 예측 합니다.
+- 사용하고자 하는 model을 지정하기 위해서는 저장된 mlflow server에 있는 model_name과 current stage를 지정해줘야 합니다.
+
+## Preprocessing feature
+
+- Preprocessing에서는 다음과 같은 문제를 고려했고, 문제를 해결하기 위해 전처리 방법을 사용했습니다. 
   1. 문장이 전체 기사에서 중요한 정보를 담고 있는지 -> text rank를 사용한 중요 문장 추출
   2. 문장이 특정 국가들 사이의 관계에 대한 정보인가 -> 국가를 나타내는 키워드를 기반으로 국가쌍을 추출했습니다.
   3. 지정한 키워드가 정말로 유의미한 키워드인가 -> NER를 사용해서 고유 명사에 해당하는 키워드가 존재하는 국가쌍만을 분석했습니다.
-- 사용하고자 하는 model을 지정하기 위해서는 저장된 mlflow server에 있는 model_name과 current stage를 지정해줘야 합니다.
-- 주로 사용하고 있는 모델은 MobileBert입니다.
 
-## Data
-- 미국, 중국, 러시아, 일본, 한국, 인도의 9개 언론사와 8개 국가기관의 기사, 문서
-
-## Folder Structure
+# Folder Structure
   ```
   newsmodel/
   │
   ├── inference/ - mlflow에 production 상태에 있는 모델을 불러와서 inference하는 모듈
-  │       ├──inference.py 
+  │       ├── inference.py 
   │
   ├── trainer/ - 기존에 있는 라벨링된 데이터를 기반으로 model을 train하는 모듈
   │       ├── nlpmodel.py 
   │
-  ├── model/ - 사용될 전체 모델들이 class로 들어가 있는 파일(개별 모델별 py파일을 만들어야 하나 고민중.
-  │       ├──model.py
+  ├── model/ - 사용될 전체 모델들이 class로 들어가 있는 파일
+  │       ├── model.py
   │
   ├── preprocess 
   │       ├── preprocess.py - 전처리 모듈들을 사용해서 파일을 전처리하는 모듈
@@ -66,8 +70,8 @@
   
  
   ```
-  
-## Requirements
+
+# Requirements
 
 - Dependencies
   - Python >= 3.8)
@@ -77,12 +81,12 @@
   - nltk
   - progressbar
 - 패키지는 다음의 pypi link(https://pypi.org/project/newsmodel/) 에서도 볼 수 있습니다.
+  
 
-## Usage
+# Usage
 
-### Train
-
-- Newsmodel.trainer
+## Train
+- Train 기능: 기존에 라벨링된 데이터를 기반으로 모델을 예측하고, 사용자가 지정한 mlflow 서버에 저장합니다.
 
 ```
 ## model import
@@ -99,8 +103,9 @@ model, quantized_model, best_accuracy = Trainer.train_model(batch_size, epoch)
 Trainer.mlflow_save(run_name, model, best_accuracy)
 ```
 
-### Inference
+## Inference
 
+- Inference 기능: mlflow에 있는 모델을 사용하여 국가간 관계를 예측합니다.
 ```
 ## model import
 from newsmodel.inference import NewsInference
@@ -115,11 +120,9 @@ inferenced_label = Inferencer.inference_sentence(input_text)
 inferenced_df = Inferencer.inference_df(pandas_df)
 ```
 
-### Preprocessing
+## Preprocessing
 
-- preprocessing은 textrank, ner, 국가쌍 유무 확인을 지원합니다.
-  - run_preprocessing: 데이터 프레임 단위에서 textrank, ner, 국가쌍 유무 확인을 제공하는 method입니다.
-  - morethan_two_countries: 문장내에서 국가쌍의 유무를 알려주는 함수입니다.
+- preprocessing 기능: 사용자가 저장한 자료를 전처리하여 Textrank, NER, 국가쌍 유무 확인을 해줍니다.
 ```
 ## model import
 import newsmodel
