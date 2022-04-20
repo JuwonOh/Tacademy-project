@@ -87,9 +87,13 @@
 
 ## 1.2.1 모델 서빙 시연 영상
 <div align="center">
-  <video src="img/API Serving Video.mp4" data-canonical-src="img/API Serving Video.mp4" controls="controls" muted="muted" style="max-height:400px;">
+  <video src="https://user-images.githubusercontent.com/52950175/164151978-dddb7d14-2f99-42e4-ba1e-dc75e82bd9f1.mp4" data-canonical-src="https://user-images.githubusercontent.com/52950175/164151978-dddb7d14-2f99-42e4-ba1e-dc75e82bd9f1.mp4" controls="controls" muted="muted" style="max-height:590px;">
   </video>
 </div>
+
+
+
+
 
 <br>
 
