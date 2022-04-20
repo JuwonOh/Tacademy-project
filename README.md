@@ -15,9 +15,11 @@
 - [1. 프로젝트 소개](#1-프로젝트-소개)
    - [1.1 프로젝트 배경](#11-프로젝트-배경)
    - [1.2 프로젝트 목표](#12-프로젝트-목표)
-   - [1.3 Data](#13-Data)
-      - [1.3.1 전처리](#131-전처리)
-      - [1.3.2 Data Lifecycle](#132-Data-Lifecycle)
+      - [1.2.1 모델 서빙 시연 영상](#121-%EB%AA%A8%EB%8D%B8-%EC%84%9C%EB%B9%99-%EC%8B%9C%EC%97%B0-%EC%98%81%EC%83%81)
+   - [1.3 프로젝트 구조](#13-프로젝트-구조)
+   - [1.4 Data](#14-data)
+      - [1.4.1 전처리](#141-전처리)
+      - [1.4.2 Data Lifecycle](#142-Data-Lifecycle)
 
 <br>
 
@@ -40,7 +42,7 @@
 <br>
 
 - [5. GCP(Google Cloud Platform)를 사용한 클라우드 기반 프로젝트 구축](#5-gcpgoogle-cloud-platform%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%9C-%ED%81%B4%EB%9D%BC%EC%9A%B0%EB%93%9C-%EA%B8%B0%EB%B0%98-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B5%AC%EC%B6%95)
-   - [5.1 Google Compute Engine (Instance-Ubuntu)](#51-google-compute-engine-instance-ubuntu)
+   - [5.1 Google Compute Engine ( Instance -> Ubuntu )](#51-google-compute-engine--instance---ubuntu)
    - [5.2 Google Storage Bucket(저장소) & Postgresql DB](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db)
    - [5.3 Docker Container](#53-docker-container)
 
@@ -63,7 +65,7 @@
 # 1. 프로젝트 소개
 
 - 저희는 국제 뉴스기사 데이터와 자연어처리 모델을 활용하여 국가 간 관계를 분석해주는 AI 엔지니어링 인프라 구축 프로젝트를 진행했습니다.
-- PPT 자료: https://docs.google.com/presentation/d/1FtOoHQrAhw24eZUqTXZcXAJygSP7SJrs/edit?usp=sharing&ouid=107492295937780957856&rtpof=true&sd=true
+- PPT 자료 : https://docs.google.com/presentation/d/1FtOoHQrAhw24eZUqTXZcXAJygSP7SJrs/edit?usp=sharing&ouid=107492295937780957856&rtpof=true&sd=true
 
 <p align="center">
 <img src="img/project_objection.png" width="300" height="100">
@@ -83,7 +85,31 @@
 
 <br>
 
-## 1.3 Data
+## 1.2.1 모델 서빙 시연 영상
+<div align="center">
+  <video src="img/API Serving Video.mp4" data-canonical-src="img/API Serving Video.mp4" controls="controls" muted="muted" style="max-height:590px;">
+  </video>
+</div>
+
+<br>
+
+## 1.3 프로젝트 구조
+- 각 폴더는 <span style="color: red">**각자 다른 Repository임을 가정**</span>합니다. 
+
+
+```
+  Root
+	│
+	├── NewsModel : 수집된 뉴스기사를 전처리하고 라벨링된 자료를 기반으로 모델을 학습시켜, 학습된 모델로 새로운 기사의 감정을 예측하는 패키지
+	│
+	├── app       : 뉴스 기사의 문장에서 국가 간 관계를 예측해주는 서비스를 제공하는 API (모델은 NewsModel 패키지 내의 모델을 사용)
+	│ 
+	└── crawler   : 분석에 필요한 뉴스 기사를 수집하는 크롤러들
+```
+
+<br>
+
+## 1.4 Data
 - 분석 대상: 한국, 미국, 중국, 일본, 인도, 러시아의 언론사, 정부기관의 기사, 문서
 - 기간: 2019.07.01 ~ 2022.03.22
 
@@ -93,14 +119,14 @@
 
 <br>
 
-## 1.3.1 전처리
+## 1.4.1 전처리
 - 기사에서 불필요한 정보가 너무 많다.
-- 중요한 문장인가? → textrank algorithm
+- 중요한 문장인가? → Textrank Algorithm
 - 국가에 대한 문장인가? → 문장 내, 키워드 유무를 통한 필터링- 키워드가 의미가 있는가? → NER(Name Entity Recognization) 적용
 
 <br>  
 
-## 1.3.2 Data Lifecycle
+## 1.4.2 Data Lifecycle
 
 <br>
 
@@ -109,9 +135,9 @@
 </p>
 
 
-- 모델 학습: 뉴스기사 데이터를 크롤링하여 모델에 사용할 데이터를 모으고, 이를 기반으로 모델을 학습
-- 관계 예측: 새로운 데이터를 모델에 적용하여, 국가간 관계를 예측
-- API serving: 사용자가 입력한 정보로, 국가 간 관계 예측 
+- 모델 학습&nbsp;: 뉴스기사 데이터를 크롤링하여 모델에 사용할 데이터를 모으고, 이를 기반으로 모델을 학습
+- 관계 예측&nbsp;: 새로운 데이터를 모델에 적용하여, 국가간 관계를 예측
+- API 서빙&nbsp;&nbsp;&nbsp;: 사용자가 입력한 정보로, 국가 간 관계 예측 
 
 
 <br>
@@ -121,13 +147,13 @@
 # 2. AI 엔지니어링?
 
 ## 2.1 AI 엔지니어링을 도입한 이유
-: 데이터 수집 횟수, 모델 실험, 모델 서빙, 코드와 인프라 관리에서의 어려움
+- 데이터 수집 횟수, 모델 실험, 모델 서빙, 코드와 인프라 관리에서의 어려움
 
 <br>
 
 ## 2.2 AI 엔지니어링 구성
-- 모델실험관리 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 실험 관리, 서빙 모델 관리 ( [MLflow](#4-MLflow를-사용한-모델관리) )
-- Ops(Operations) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 서빙, 서버 제공, 관리 ( [GCP](#5-GCP(Google-Cloud-Platform)를-사용한-클라우드-기반-프로젝트-구축) , [GCP-Storage-Bucket](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB) , [Fast API](#6-Fast-API를-사용한-모델-서빙) )
+- 모델 실험 관리 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 실험 관리, 서빙 모델 관리 ( [MLflow](#4-MLflow를-사용한-모델관리) )
+- Ops(Operations) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 서빙, 서버 제공, 관리 ( [GCP](#5-gcpgoogle-cloud-platform%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%9C-%ED%81%B4%EB%9D%BC%EC%9A%B0%EB%93%9C-%EA%B8%B0%EB%B0%98-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B5%AC%EC%B6%95) , [GCP-Storage-Bucket](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db) , [Fast API](#6-Fast-API를-사용한-모델-서빙) )
 - 파이프라인, 자동화&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 데이터 수집 및 확인을 위한 데이터 파이프라인 작성 가능
 
 <br>
@@ -145,22 +171,31 @@
 # 3. 모델링(NLP)
 
 ## 3.1 모델 선택 기준
-   #### &nbsp;&nbsp;&nbsp; 1) 성능: Accuracy, F1-Score 값이 높은 모델
-   #### &nbsp;&nbsp;&nbsp; 2) 용량: 모델 서빙에서 서버의 메모리와 성능에 더 적은 부하를 주는 모델
-   #### &nbsp;&nbsp;&nbsp; 3) 양자화 이후 성능 및 용량: 서빙을 위한 양자화 적용
+&nbsp;&nbsp;&nbsp;&nbsp; 1\) 성능&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: Accuracy, F1-Score 값이 높은 모델
+<br>
+
+&nbsp;&nbsp;&nbsp;&nbsp; 2\) 용량&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 모델 서빙에서 서버의 메모리와 성능에 더 적은 부하를 주는 모델
+<br>
+
+&nbsp;&nbsp;&nbsp;&nbsp; 3\) 양자화 이후 성능 및 용량&nbsp;&nbsp;: 서빙을 위한 양자화 적용
 
 <br>
 
 ## 3.2 실험 결과
-- 후보 모델: MobileBERT & ELECTRA
+- 후보 모델
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 1\) Electra
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 2\) MobileBert
 
    | 모델 이름   | accuracy | F1 score | 용량   | quantization 정확도 | quantization  용량 |
    |:----------:|:--------:|:--------:|:------:|:-------------------:|:------------------:|
    | BERT       | 61 %     | 0.59     | 421 mb | 55%                 | 104mb              |
    | Electra    | 64 %     | 0.63     | 124 mb | 60%                 | 61mb               |
    | MobileBert | 70 %     | 0.67     | 94mb   | 61%                 | 31mb               |
-- **현재 사용하고 있는 주요 모델은 MobileBert**이며, 서빙 모델로 사용하고 있습니다.
-- 모델에 대한 자세한 내용은 pypi link (https://pypi.org/project/newsmodel/) 에서 보실 수 있습니다.
+
+- <span style="color: red">**현재 사용하고 있는 주요 모델은 MobileBert**</span>이며, 서빙 모델로 사용하고 있습니다.
+- 모델에 대한 자세한 내용은 Pypi Link (https://pypi.org/project/newsmodel/) 에서 보실 수 있습니다.
 
 
 <br>
@@ -170,13 +205,20 @@
 # 4. MLflow를 사용한 모델관리
 
 ## 4.1 Features
-- 학습시킨 모델들을 MLflow를 사용하여 '프로젝트(Experiment) 및 실험단위(Run)로' 저장소([GCP-Storage Bucket](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB))에 관리합니다.
-- MLflow를 사용하여 학습시킨 실험에 대한 정보(성능평가지표, 파라미터, 모델버전) 등은 [Postgresql DB](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB)에 저장합니다.
-- 모델을 Serving(배포)하기 위해 등록된 모델들을, MLflow를 사용하여 Lifecycle을 아래의 3가지 단계로 전환 시킬 수 있습니다.
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1) Staging 
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2) Production 
-#### &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3) Achiving
-- MLflow를 통해 단계 지정 후, 모델을 Serving(배포)하기 위한 tool로는 [Fast API](#6-Fast-API를-사용한-모델-서빙)를 사용했습니다.
+- 학습시킨 모델들을 MLflow를 사용하여 '프로젝트(Experiment) 및 실험단위(Run)로' 저장소( [GCP-Storage Bucket](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db) )에 관리합니다.
+
+- MLflow를 사용하여 학습시킨 실험에 대한 정보(성능평가지표, 파라미터, 모델버전) 등은 [Postgresql DB](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db)에 저장합니다.
+
+- MLflow에서 등록된 모델들을 서빙하기 위해, Lifecycle을 아래의 3가지 단계로 전환 시킬 수 있습니다.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1\) Staging 
+<br>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2\) Production 
+<br>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3\) Achiving
+- MLflow를 통해 단계를 지정한 후, 모델을 서빙하기 위한 Tool로는 [Fast API](#6-Fast-API를-사용한-모델-서빙)를 사용했습니다.
 
 <br>
 
@@ -196,23 +238,37 @@
 
 # 5. GCP(Google Cloud Platform)를 사용한 클라우드 기반 프로젝트 구축
 
-## 5.1 Google Compute Engine (Instance->Ubuntu)
-- 내용: 저희 프로젝트에서는 인스턴스(Ubuntu)를 사용하여 [MLflow Server 연결](#42-Usage), [Docker를 활용한 DB 생성](#53-Docker-Container), [데이터 관리](#52-Google-Storage-Bucket(저장소)-&-Postgresql-DB) 등을 하고 있습니다.
-- 사용 이유: GCE(Google Compute Engine)에서 가상 머신(VM)이 표준 이미지 또는 사용자가 만든 커스텀 이미지로부터 런칭이 가능하기 때문에 쉽게 생성하고 사용할 수 있습니다.
+## 5.1 Google Compute Engine ( Instance -> Ubuntu )
+- 내용&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 저희 프로젝트에서는 인스턴스(Ubuntu)를 사용하여 [MLflow Server 연결](#42-Usage), [Docker를 활용한 DB 생성](#53-Docker-Container),
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[데이터 관리](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db) 등을 하고 있습니다.
+- 사용 이유&nbsp;: GCE(Google Compute Engine)에서 가상 머신(VM)이 표준 이미지 또는 사용자가 만든 커스텀
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 이미지로부터 런칭이 가능하기 때문에 쉽게 생성하고 사용할 수 있습니다.
 
 <br>
 
 ## 5.2 Google Storage Bucket(저장소) & Postgresql DB
 
-- 내용: 학습시킨 모델들은 프로젝트(Experiment) 아래 실험단위(Run)로 저장소(GCP-Storage-Bucket)에, 실험에 대한 정보(성능평가지표, 파라미터, 모델버전)들은 Postgresql DB에 저장하여 관리하고 있습니다.
-- 사용 이유: Local에 Artifacts(Model, Image, Data 파일)를 저장하게 되면, Local의 성능저하 및 보안상의 이슈 때문에  Local이 아닌 데이터 저장소를 따로 두었고 저희는 데이터 저장소로 GCP-Storage-Bucket와 Postgresql DB로 선정하였습니다.
+- 내용&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 학습시킨 모델들은 프로젝트(Experiment) 아래 실험단위(Run)로 저장소(GCP-Storage-Bucket)에, 실험에
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;대한 정보(성능평가지표, 파라미터, 모델버전)들은 Postgresql DB에 저장하여 관리하고 있습니다.
+- 사용 이유&nbsp;: Local에 Artifacts(Model, Image, Data 파일)를 저장하게 되면, Local의 성능저하 및 보안상의 이슈
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;때문에 Local이 아닌 데이터 저장소를 따로 두었고 저희는 데이터 저장소로 GCP-Storage-Bucket와 Postgresql DB로
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;선정하였습니다.
 
 <br>
 
 ## 5.3 Docker Container
 
-- 내용: GCE를 통해 생성한 인스턴스(Ubuntu)에 Docker를 설치하고, Container 기술을 이용하여 [Postgresql DB](#54-Postgresql-db)를 띄웠습니다.
-- 사용 이유: 코드를 더 빨리 전달하고, 애플리케이션 운영을 표준화하고, 코드를 원활하게 이동하고, 리소스 사용률을 높여 비용을 절감할 수 있었습니다.
+- 내용&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: GCE를 통해 생성한 인스턴스(Ubuntu)에 Docker를 설치하고, Container 기술을 이용하여 [Postgresql DB](#52-google-storage-bucket%EC%A0%80%EC%9E%A5%EC%86%8C--postgresql-db)를
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;띄웠습니다.
+- 사용 이유&nbsp;: 코드를 더 빨리 전달하고, 애플리케이션 운영을 표준화하고, 코드를 원활하게 이동하고, 리소스 사용률
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;을 높여 비용을 절감할 수 있었습니다.
 
 <br>
 <br>
@@ -231,19 +287,16 @@ API Server는 inference 요청이 들어오면 데이터 검증을 하고 이후
 # 7. 보완점
 
 ## 7.1 Workflow Management
-#### &nbsp;&nbsp;&nbsp;&nbsp; 1) Achiving 모델 학습, 예측, 데이터 수집까지 자동으로 수행하는 파이프라인 구축
-#### &nbsp;&nbsp;&nbsp;&nbsp; 2) 시스템 자동화를 위해서 Airflow Tool을 사용예정
+- 성능 Achiving 모델 학습, 예측, 데이터 수집까지 자동으로 수행하는 파이프라인 구축
+- 성능 시스템 자동화를 위해서 Airflow Tool을 사용 예정
 
 <br>
 
 ## 7.2 Model
-
-#### &nbsp;&nbsp;&nbsp;&nbsp; 1) 지속적인 SOTA 모델 적용
-#### &nbsp;&nbsp;&nbsp;&nbsp; 2) 국가간 관계의 맥락에서 Entity Level Sentiment Analysis 사용 해보기
+- 국가간 관계의 맥락에서 Entity Level Sentiment Analysis 사용 해보기
 
 <br>
 
 ## 7.3 Serving
-
-#### &nbsp;&nbsp;&nbsp;&nbsp; 1) 각 모델의 정보와 특정 모델을 사용할 수 있는 기능 추가
-#### &nbsp;&nbsp;&nbsp;&nbsp; 2) Serving 성능 및 속도 향상을 위해 Tool 추가 ex) Redis
+- 각 모델의 정보와 특정 모델을 사용할 수 있는 기능 추가
+- 서빙 성능 및 속도 향상을 위해 새로운 Tool 추가로 적용 ex) Redis
