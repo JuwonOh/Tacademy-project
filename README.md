@@ -98,7 +98,7 @@
 <br>
 
 ## 1.3 프로젝트 구조
-- 각 폴더는 <span style="color: red">**각자 다른 Repository임을 가정**</span>합니다. 
+- 각 폴더는 <span style="color:red">**각자 다른 Repository임을 가정**</span>합니다. 
 
 
 ```
@@ -126,7 +126,8 @@
 ## 1.4.1 전처리
 - 기사에서 불필요한 정보가 너무 많다.
 - 중요한 문장인가? → Textrank Algorithm
-- 국가에 대한 문장인가? → 문장 내, 키워드 유무를 통한 필터링- 키워드가 의미가 있는가? → NER(Name Entity Recognization) 적용
+- 국가에 대한 문장인가? → 문장 내, 키워드 유무를 통한 필터링
+- 키워드가 의미가 있는가? → NER(Name Entity Recognization) 적용
 
 <br>  
 
@@ -196,7 +197,7 @@
    | Electra    | 64 %     | 0.63     | 124 mb | 60%                 | 61mb               |
    | MobileBert | 70 %     | 0.67     | 94mb   | 61%                 | 31mb               |
 
-- <span style="color: red">**현재 사용하고 있는 주요 모델은 MobileBert**</span>이며, 서빙 모델로 사용하고 있습니다.
+- <span style="color:red">**현재 사용하고 있는 주요 모델은 MobileBert**</span>이며, 서빙 모델로 사용하고 있습니다.
 - 모델에 대한 자세한 내용은 Pypi Link (https://pypi.org/project/newsmodel/) 에서 보실 수 있습니다.
 
 
