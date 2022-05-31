@@ -34,6 +34,7 @@ dag_args = dict(
     schedule_interval=datetime.timedelta(days=1),
     start_date=datetime.datetime(2022, 4, 1),
     tags=["Datapipeline"],
+    catchup=True  # backfill을 위해서 catchup을 True로 설정함.
 )
 
 # using news category
@@ -117,11 +118,10 @@ def get_jsondata(json_path, csv_path, use_filtering=True):
     )
 
 
-# 날짜 부분은 여기에 만들어준 argparser argument를 사용해서 묶어주자.
-today = datetime.date.today().strftime("%Y-%m-%d")
-yesterday = (datetime.date.today() - datetime.timedelta(days=3)).strftime(
-    "%Y-%m-%d"
-)
+# 날짜 부분은 여기에 만들어준 Jinja template를 사용해서 묶어주자.
+yesterday = '{{ execution_date.in_timezone("Asia/Seoul").strftime("%Y-%m-%d") }}'
+today = '{{ next_execution_date.in_timezone("Asia/Seoul").strftime("%Y-%m-%d") }}'
+
 # setting path
 csv_path = "/home/joh87411/output/data_warehouse"
 json_path = "/home/joh87411/output/json_data/{}".format(today)
